@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>मंडी भाव</title>
+  <link rel="manifest" href="manifest.json" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900 pb-20 select-none">
+
+  <!-- Header -->
+  <header class="bg-emerald-700 text-white p-4 sticky top-0 z-50 shadow-md">
+    <div class="flex justify-between items-center">
+      <h1 class="text-xl font-bold">🌾 मंडी भाव</h1>
+      <span id="currentDate" class="text-xs bg-emerald-800 px-2 py-1 rounded"></span>
+    </div>
+
+    <!-- Mandi Selector Chips -->
+    <div class="mt-3 flex gap-2 overflow-x-auto pb-1 text-sm">
+      <button onclick="filterMandi(null)" class="bg-white text-emerald-800 font-semibold px-3 py-1 rounded-full whitespace-nowrap shadow-sm">सभी मंडियां</button>
+      <button onclick="filterMandi(1)" class="bg-emerald-800 text-white px-3 py-1 rounded-full whitespace-nowrap">शामगढ़</button>
+      <button onclick="filterMandi(2)" class="bg-emerald-800 text-white px-3 py-1 rounded-full whitespace-nowrap">मंदसौर</button>
+      <button onclick="filterMandi(3)" class="bg-emerald-800 text-white px-3 py-1 rounded-full whitespace-nowrap">भवानीमंडी</button>
+    </div>
+  </header>
+
+  <!-- Rate List Container -->
+  <main class="p-3" id="ratesContainer">
+    <div class="text-center py-10 text-gray-500">डेटा लोड हो रहा है...</div>
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-2 z-50 shadow-lg">
+    <button class="flex flex-col items-center text-emerald-700">
+      <span class="text-lg">🏠</span>
+      <span class="text-xs font-semibold">होम</span>
+    </button>
+    <button class="flex flex-col items-center text-gray-500">
+      <span class="text-lg">⚖️</span>
+      <span class="text-xs">तुलना</span>
+    </button>
+    <button class="flex flex-col items-center text-gray-500" onclick="alert('एंट्री फॉर्म जल्द चालू होगा')">
+      <span class="text-lg">✍️</span>
+      <span class="text-xs">भाव डालें</span>
+    </button>
+  </nav>
+
+  <!-- Logic Script -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
