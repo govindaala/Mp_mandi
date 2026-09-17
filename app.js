@@ -1,275 +1,503 @@
-import { createClient } from "https://esm.sh/@libsql/client/web";
-
-const TURSO_URL = "libsql://mpmandi-govindaala.aws-ap-south-1.turso.io";
+// Turso HTTPS Endpoint & Token
+const TURSO_HTTP_URL = "https://mpmandi-govindaala.aws-ap-south-1.turso.io/v2/pipeline";
 const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODk2MTQwMzksImlkIjoiMDFhMGFkNGUtZDEwMS03M2ViLTlhMjEtZDA3MWIyNDU1MmJiIiwia2lkIjoiV0JkNlJ2dHFndUYtOHV1R2tnT0xSWWREU0lCaGVOem8xVy1QNXhBWkNVVSIsInJpZCI6IjdjY2JmYTI2LWNiYTgtNGUxOS04Njc3LWU0YTdlMGVhYTRmMyJ9.rtHnUY5poOSfygQDiQnHUDYNMZXpaMZoqEJnwy6YmIbWeAVdvIZbhfOXLgAPhS4kMEuGWtFL2Smpgo5rt6VXAQ";
 
-const db = createClient({
-  url: TURSO_URL,
-  authToken: TURSO_TOKEN,
-});
-
-let allRatesCache = [];
-let selectedMandiId = null;
-let chartInstance = null;
-
-// आज की तारीख सेट करें
-const todayISO = new Date().toISOString().split("T")[0];
-const dateFilterInput = document.getElementById("dateFilter");
-if (dateFilterInput) {
-  dateFilterInput.value = todayISO;
-  dateFilterInput.addEventListener("change", () => loadRates(selectedMandiId));
-}
-
-// 1. डेटा लोड करना
-export async function loadRates(mandiId = null) {
-  const container = document.getElementById("ratesContainer");
-  container.innerHTML = `<div class="text-center py-10 text-gray-400 text-sm animate-pulse">डेटा लोड हो रहा है...</div>`;
+// 1. सुपरफास्ट Native Fetch Engine (बिना किसी हैंग के)
+async function executeSQL(sql) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 9000); // 9 sec timeout
 
   try {
-    const chosenDate = dateFilterInput ? dateFilterInput.value : todayISO;
-    let query = `
+    const response = await fetch(TURSO_HTTP_URL, {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "Authorization": `Bearer ${TURSO_TOKEN}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        requests: [
+          { type: "execute", stmt: { sql } },
+          { type: "close" }
+        ]
+      })
+    });
+    clearTimeout(timeoutId);
+
+    const data = await response.json();
+    if (data.results && data.results[0] && data.results[0].type === "ok") {
+      const resObj = data.results[0].response.result;
+      const cols = resObj.cols.map(c => c.name);
+      const rows = resObj.rows.map(row => {
+        const item = {};
+        row.forEach((cell, idx) => {
+          item[cols[idx]] = cell.value !== undefined ? cell.value : null;
+        });
+        return item;
+      });
+      return rows;
+    } else if (data.results && data.results[0] && data.results[0].type === "error") {
+      throw new Error(data.results[0].error.message);
+    }
+    return [];
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw err;
+  }
+}
+
+// Global App State
+let mandisList = [
+  { id: 1, name: "शामगढ़", district: "मंदसौर" },
+  { id: 2, name: "मंदसौर", district: "मंदसौर" },
+  { id: 3, name: "भवानीमंडी", district: "झालावाड़" },
+  { id: 4, name: "नीमच", district: "नीमच" },
+  { id: 5, name: "रतलाम", district: "रतलाम" },
+  { id: 6, name: "कोटा", district: "कोटा" }
+];
+
+let cropsList = [
+  { id: 1, name_hi: "सोयाबीन", category: "तिलहन" },
+  { id: 2, name_hi: "गेहूं", category: "अनाज" },
+  { id: 3, name_hi: "लहसुन", category: "मसाला" },
+  { id: 4, name_hi: "चना", category: "दलहन" },
+  { id: 5, name_hi: "सरसों", category: "तिलहन" },
+  { id: 6, name_hi: "प्याज", category: "सब्जी" }
+];
+
+let allRatesCache = [];
+let activeMandiFilter = "all";
+let chartInstance = null;
+
+const globalDate = document.getElementById("globalDate");
+if (globalDate) {
+  globalDate.value = new Date().toISOString().split("T")[0];
+  globalDate.addEventListener("change", () => loadLiveRates());
+}
+
+// -------------------------------------------------------------
+// 2. Master Data Load
+// -------------------------------------------------------------
+async function initAppData() {
+  populateDropdowns();
+  renderMandiPills();
+
+  try {
+    const [mRows, cRows] = await Promise.all([
+      executeSQL("SELECT id, name, district FROM mandis WHERE is_active = 1 ORDER BY name ASC;"),
+      executeSQL("SELECT id, name_hi, category FROM commodities ORDER BY name_hi ASC;")
+    ]);
+
+    if (mRows.length > 0) mandisList = mRows;
+    if (cRows.length > 0) cropsList = cRows;
+
+    populateDropdowns();
+    renderMandiPills();
+  } catch (e) {
+    console.warn("Using offline master cache:", e.message);
+  }
+
+  await loadLiveRates();
+  loadMarketNews();
+}
+
+function populateDropdowns() {
+  const mSelectors = ["opMandi", "traderMandi", "repMandi", "trendMandiSelect"];
+  const cSelectors = ["opCrop", "traderCrop", "trendCropSelect"];
+
+  mSelectors.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.innerHTML = mandisList.map(m => `<option value="${m.id}">${m.name} (${m.district || ''})</option>`).join("");
+    }
+  });
+
+  cSelectors.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.innerHTML = cropsList.map(c => `<option value="${c.id}">${c.name_hi} [${c.category || ''}]</option>`).join("");
+    }
+  });
+
+  document.getElementById("trendMandiSelect")?.addEventListener("change", () => window.loadTrendData(7));
+  document.getElementById("trendCropSelect")?.addEventListener("change", () => window.loadTrendData(7));
+}
+
+function renderMandiPills() {
+  const bar = document.getElementById("dynamicMandiPills");
+  if (!bar) return;
+
+  let html = `<button onclick="window.selectFilter('all')" class="mandi-pill bg-emerald-700 text-white font-bold px-3 py-1 rounded-full shadow-sm whitespace-nowrap" data-id="all">सभी मंडियां</button>`;
+  mandisList.forEach(m => {
+    html += `<button onclick="window.selectFilter(${m.id})" class="mandi-pill bg-white text-gray-700 px-3 py-1 rounded-full shadow-sm whitespace-nowrap" data-id="${m.id}">${m.name}</button>`;
+  });
+  bar.innerHTML = html;
+}
+
+window.selectFilter = function(id) {
+  activeMandiFilter = id;
+  document.querySelectorAll(".mandi-pill").forEach(p => {
+    if (p.getAttribute("data-id") == id) {
+      p.className = "mandi-pill bg-emerald-700 text-white font-bold px-3 py-1 rounded-full shadow-sm whitespace-nowrap";
+    } else {
+      p.className = "mandi-pill bg-white text-gray-700 px-3 py-1 rounded-full shadow-sm whitespace-nowrap";
+    }
+  });
+  renderRatesCards();
+};
+
+// -------------------------------------------------------------
+// 3. Home Rates Fetch
+// -------------------------------------------------------------
+async function loadLiveRates() {
+  const container = document.getElementById("homeCardContainer");
+  container.innerHTML = `<div class="text-center py-10 text-gray-400 text-xs animate-pulse">डेटा लोड हो रहा है...</div>`;
+
+  try {
+    const query = `
       SELECT 
-        p.id, 
-        p.mandi_id,
-        p.commodity_id,
-        m.name as mandi_name, 
-        c.name_hi as crop_name, 
-        p.price_min, 
-        p.price_max, 
-        p.price_modal, 
-        p.arrival_quantity, 
-        p.source_type,
-        p.price_date
+        p.id, p.mandi_id, p.commodity_id, p.source_type, p.firm_name, p.quality_grade,
+        p.price_min, p.price_max, p.price_modal, p.arrival_quantity, p.price_date,
+        m.name as mandi_name, c.name_hi as crop_name
       FROM price_records p
       JOIN mandis m ON p.mandi_id = m.id
       JOIN commodities c ON p.commodity_id = c.id
       WHERE p.status = 'approved'
-      ORDER BY p.id DESC LIMIT 100;
+      ORDER BY p.id DESC LIMIT 60;
     `;
-
-    const res = await db.execute(query);
-    allRatesCache = res.rows || [];
-    renderCards(filterRows(allRatesCache, mandiId));
+    const rows = await executeSQL(query);
+    allRatesCache = rows;
+    renderRatesCards();
   } catch (err) {
-    container.innerHTML = `<div class="p-4 bg-red-50 text-red-600 text-xs rounded-xl border border-red-200">एरर: ${err.message}</div>`;
+    container.innerHTML = `
+      <div class="p-4 bg-red-50 text-red-600 text-xs rounded-xl border border-red-200">
+        <strong>लोड नहीं हो सका:</strong> ${err.message}
+        <button onclick="loadLiveRates()" class="mt-2 block w-full bg-red-600 text-white py-1.5 rounded font-bold">पुनः प्रयास करें</button>
+      </div>`;
   }
 }
 
-// सर्च और फिल्टर
-function filterRows(rows, mandiId) {
-  const searchVal = document.getElementById("searchInput")?.value.trim().toLowerCase() || "";
-  return rows.filter(r => {
-    const matchMandi = mandiId ? r.mandi_id == mandiId : true;
+function renderRatesCards() {
+  const container = document.getElementById("homeCardContainer");
+  const searchVal = document.getElementById("mandiSearchInput")?.value.trim().toLowerCase() || "";
+
+  const filtered = allRatesCache.filter(r => {
+    const matchMandi = activeMandiFilter === "all" ? true : r.mandi_id == activeMandiFilter;
     const matchSearch = searchVal === "" || 
-      r.crop_name.toLowerCase().includes(searchVal) || 
-      r.mandi_name.toLowerCase().includes(searchVal);
+      (r.crop_name && r.crop_name.toLowerCase().includes(searchVal)) || 
+      (r.mandi_name && r.mandi_name.toLowerCase().includes(searchVal)) ||
+      (r.firm_name && r.firm_name.toLowerCase().includes(searchVal));
     return matchMandi && matchSearch;
   });
-}
 
-// कार्ड्स रेंडर करना
-function renderCards(rows) {
-  const container = document.getElementById("ratesContainer");
-  if (!rows || rows.length === 0) {
+  if (filtered.length === 0) {
     container.innerHTML = `
-      <div class="bg-white p-8 rounded-2xl text-center shadow-sm border border-gray-100 mt-2">
-        <span class="text-4xl">📭</span>
-        <p class="text-gray-500 font-medium text-sm mt-2">कोई भाव उपलब्ध नहीं है</p>
-        <p class="text-gray-400 text-xs mt-1">अन्य मंडी या तारीख चुनकर देखें</p>
+      <div class="bg-white p-8 rounded-xl text-center shadow-sm">
+        <span class="text-3xl">🌾</span>
+        <p class="text-gray-600 font-bold text-xs mt-2">कोई भाव उपलब्ध नहीं है</p>
+        <p class="text-gray-400 text-[11px] mt-1">नीचे 'एंट्री पैनल' से नया भाव दर्ज करें</p>
       </div>`;
     return;
   }
 
-  container.innerHTML = rows.map(r => `
-    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:shadow-md transition">
-      <div class="flex justify-between items-start mb-3">
+  container.innerHTML = filtered.map(r => `
+    <div class="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100">
+      <div class="flex justify-between items-start mb-2">
         <div>
-          <div class="flex items-center gap-2">
-            <h2 class="text-lg font-bold text-gray-900">${r.crop_name}</h2>
-            <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${r.source_type === 'GOVT_MANDI' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">
-              ${r.source_type === 'GOVT_MANDI' ? 'सरकारी नीलामी' : 'व्यापारी भाव'}
-            </span>
-          </div>
-          <p class="text-xs text-gray-500 font-medium mt-0.5">
-            📍 ${r.mandi_name} मंडी | आवक: <strong class="text-gray-700">${r.arrival_quantity || '0'} बोरी</strong>
-          </p>
+          <h3 class="text-base font-bold text-gray-900 leading-tight">${r.crop_name}</h3>
+          <p class="text-xs text-emerald-700 font-medium">📍 ${r.mandi_name} मंडी | आवक: ${r.arrival_quantity || '0'} बोरी</p>
+          ${r.firm_name ? `<p class="text-[11px] text-blue-800 font-semibold mt-0.5">🏪 ${r.firm_name} (${r.quality_grade || 'कोटेशन'})</p>` : ''}
+        </div>
+        <div class="text-right">
+          <span class="text-[9px] px-2 py-0.5 rounded-full font-bold ${r.source_type === 'MANDI_OPERATOR' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">
+            ${r.source_type === 'MANDI_OPERATOR' ? 'सरकारी नीलामी' : 'व्यापारी खरीद'}
+          </span>
+          <span class="text-[9px] text-gray-400 block mt-1">${r.price_date || ''}</span>
         </div>
       </div>
 
-      <div class="grid grid-cols-3 gap-2 bg-emerald-50/50 p-2.5 rounded-xl text-center border border-emerald-100">
+      <div class="grid grid-cols-3 gap-1.5 bg-gray-50 p-2 rounded-lg text-center">
         <div>
-          <span class="text-[10px] text-gray-500 font-medium block">न्यूनतम</span>
-          <span class="text-sm font-bold text-gray-700">₹${r.price_min}</span>
+          <span class="text-[9px] text-gray-400 block">न्यूनतम</span>
+          <span class="text-xs font-bold text-gray-700">₹${r.price_min}</span>
         </div>
-        <div class="border-x border-emerald-200">
-          <span class="text-[10px] text-emerald-700 font-bold block">मॉडल (औसत)</span>
-          <span class="text-base font-extrabold text-emerald-700">₹${r.price_modal || '-'}</span>
+        <div class="border-x border-gray-200">
+          <span class="text-[9px] text-emerald-700 font-bold block">मॉडल (औसत)</span>
+          <span class="text-sm font-extrabold text-emerald-700">₹${r.price_modal || r.price_min}</span>
         </div>
         <div>
-          <span class="text-[10px] text-gray-500 font-medium block">अधिकतम</span>
-          <span class="text-sm font-bold text-gray-700">₹${r.price_max}</span>
+          <span class="text-[9px] text-gray-400 block">अधिकतम</span>
+          <span class="text-xs font-bold text-gray-700">₹${r.price_max}</span>
         </div>
       </div>
     </div>
   `).join("");
 }
 
-// 2. टैब स्विचिंग
-window.switchTab = function(tabName) {
-  const tabs = ['home', 'compare', 'trend', 'entry'];
-  tabs.forEach(t => {
-    document.getElementById(`tab-${t}`)?.classList.add("hidden");
-    const btn = document.getElementById(`nav-${t}`);
-    if (btn) {
-      btn.classList.remove("text-emerald-700");
-      btn.classList.add("text-gray-400");
-    }
-  });
+document.getElementById("mandiSearchInput")?.addEventListener("input", renderRatesCards);
 
-  document.getElementById(`tab-${tabName}`)?.classList.remove("hidden");
-  const activeBtn = document.getElementById(`nav-${tabName}`);
-  if (activeBtn) {
-    activeBtn.classList.remove("text-gray-400");
-    activeBtn.classList.add("text-emerald-700");
-  }
+// -------------------------------------------------------------
+// 4. Trend & Graph Engine
+// -------------------------------------------------------------
+window.loadTrendData = async function(days = 7) {
+  const mandiId = document.getElementById("trendMandiSelect")?.value;
+  const cropId = document.getElementById("trendCropSelect")?.value;
+  if (!mandiId || !cropId) return;
 
-  const searchBox = document.getElementById("searchContainer");
-  const filterPills = document.getElementById("filterPills");
-  if (tabName === 'home') {
-    searchBox?.classList.remove("hidden");
-    filterPills?.classList.remove("hidden");
-  } else {
-    searchBox?.classList.add("hidden");
-    filterPills?.classList.add("hidden");
-  }
-
-  if (tabName === 'trend') renderTrendChart();
-  if (tabName === 'compare') runComparison();
-};
-
-// 3. मंडी फिल्टर चिप्स
-window.setMandiFilter = function(id) {
-  selectedMandiId = id;
-  const pills = document.querySelectorAll(".filter-pill");
-  pills.forEach((p, index) => {
-    if ((id === null && index === 0) || (id !== null && p.getAttribute("onclick")?.includes(`(${id})`))) {
-      p.className = "filter-pill bg-white text-emerald-900 font-bold px-3 py-1.5 rounded-full shadow-sm whitespace-nowrap";
+  document.querySelectorAll(".trend-btn").forEach(btn => {
+    if (btn.getAttribute("onclick")?.includes(`(${days})`)) {
+      btn.className = "trend-btn bg-emerald-700 text-white px-3 py-1 rounded-md font-bold";
     } else {
-      p.className = "filter-pill bg-emerald-800 text-white px-3 py-1.5 rounded-full whitespace-nowrap";
+      btn.className = "trend-btn bg-gray-100 text-gray-700 px-3 py-1 rounded-md font-medium";
     }
   });
-  renderCards(filterRows(allRatesCache, selectedMandiId));
-};
-
-// सर्च इनपुट लिसनर
-document.getElementById("searchInput")?.addEventListener("input", () => {
-  renderCards(filterRows(allRatesCache, selectedMandiId));
-});
-
-// 4. तुलना फंक्शन (Comparison Logic)
-window.runComparison = function() {
-  const cropId = document.getElementById("compareCrop").value;
-  const m1 = document.getElementById("compareMandi1").value;
-  const m2 = document.getElementById("compareMandi2").value;
-
-  const r1 = allRatesCache.find(r => r.commodity_id == cropId && r.mandi_id == m1);
-  const r2 = allRatesCache.find(r => r.commodity_id == cropId && r.mandi_id == m2);
-
-  const container = document.getElementById("compareResult");
-
-  container.innerHTML = `
-    <div class="grid grid-cols-2 gap-3">
-      <div class="bg-white p-4 rounded-xl border border-gray-200 text-center">
-        <h3 class="font-bold text-gray-800 text-sm mb-2">${r1 ? r1.mandi_name : 'मंडी 1'}</h3>
-        ${r1 ? `
-          <p class="text-xs text-emerald-700 font-bold text-lg">₹${r1.price_modal}</p>
-          <p class="text-[11px] text-gray-500 mt-1">रेंज: ₹${r1.price_min} - ₹${r1.price_max}</p>
-          <p class="text-[11px] text-gray-400 mt-1">आवक: ${r1.arrival_quantity} बोरी</p>
-        ` : `<p class="text-xs text-gray-400 py-4">डेटा उपलब्ध नहीं</p>`}
-      </div>
-
-      <div class="bg-white p-4 rounded-xl border border-gray-200 text-center">
-        <h3 class="font-bold text-gray-800 text-sm mb-2">${r2 ? r2.mandi_name : 'मंडी 2'}</h3>
-        ${r2 ? `
-          <p class="text-xs text-emerald-700 font-bold text-lg">₹${r2.price_modal}</p>
-          <p class="text-[11px] text-gray-500 mt-1">रेंज: ₹${r2.price_min} - ₹${r2.price_max}</p>
-          <p class="text-[11px] text-gray-400 mt-1">आवक: ${r2.arrival_quantity} बोरी</p>
-        ` : `<p class="text-xs text-gray-400 py-4">डेटा उपलब्ध नहीं</p>`}
-      </div>
-    </div>
-  `;
-};
-
-// 5. ट्रेंड और ग्राफ (Chart.js)
-window.renderTrendChart = function() {
-  const ctx = document.getElementById('priceChart')?.getContext('2d');
-  if (!ctx) return;
-
-  if (chartInstance) chartInstance.destroy();
-
-  chartInstance = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: ['11 सित', '12 सित', '13 सित', '14 सित', '15 सित', '16 सित', '17 सित'],
-      datasets: [{
-        label: 'मॉडल भाव (₹/क्विंटल)',
-        data: [4500, 4550, 4520, 4600, 4680, 4650, 4720],
-        borderColor: '#047857',
-        backgroundColor: 'rgba(4, 120, 87, 0.1)',
-        borderWidth: 2.5,
-        fill: true,
-        tension: 0.35,
-        pointBackgroundColor: '#047857'
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        y: { grid: { color: '#f3f4f6' } },
-        x: { grid: { display: false } }
-      }
-    }
-  });
-};
-
-window.updateChart = () => renderTrendChart();
-
-// 6. भाव प्रविष्टि (Submit to Turso)
-window.submitNewRate = async function(e) {
-  e.preventDefault();
-  const btn = document.getElementById("submitBtn");
-  btn.disabled = true;
-  btn.innerText = "दर्ज हो रहा है...";
-
-  const mandi_id = document.getElementById("formMandi").value;
-  const commodity_id = document.getElementById("formCommodity").value;
-  const source_type = document.getElementById("formSource").value;
-  const price_min = parseFloat(document.getElementById("formMin").value);
-  const price_modal = parseFloat(document.getElementById("formModal").value);
-  const price_max = parseFloat(document.getElementById("formMax").value);
-  const arrival = parseFloat(document.getElementById("formArrival").value) || 0;
 
   try {
-    const insertSQL = `
-      INSERT INTO price_records 
-      (mandi_id, commodity_id, source_type, price_min, price_max, price_modal, arrival_quantity, price_date, status)
-      VALUES (${mandi_id}, ${commodity_id}, '${source_type}', ${price_min}, ${price_max}, ${price_modal}, ${arrival}, DATE('now'), 'approved');
+    const query = `
+      SELECT price_date, price_min, price_modal, price_max, arrival_quantity 
+      FROM price_records 
+      WHERE mandi_id = ${mandiId} AND commodity_id = ${cropId}
+      ORDER BY price_date DESC LIMIT ${days};
     `;
-    await db.execute(insertSQL);
+    const rawRows = await executeSQL(query);
+    const rows = [...rawRows].reverse();
 
-    alert("✅ भाव सफलतापूर्वक दर्ज हो गया!");
-    document.getElementById("entryForm").reset();
-    switchTab('home');
-    loadRates();
+    const labels = rows.map(r => String(r.price_date).slice(5));
+    const values = rows.map(r => r.price_modal || r.price_min);
+
+    const ctx = document.getElementById("trendCanvas")?.getContext("2d");
+    if (chartInstance) chartInstance.destroy();
+
+    if (window.Chart && ctx) {
+      chartInstance = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: labels.length ? labels : ["डेटा नहीं"],
+          datasets: [{
+            label: "मॉडल भाव (₹)",
+            data: values.length ? values : [0],
+            borderColor: "#047857",
+            backgroundColor: "rgba(4, 120, 87, 0.1)",
+            borderWidth: 2.5,
+            fill: true,
+            tension: 0.3,
+            pointBackgroundColor: "#047857"
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { display: false } },
+            y: { grid: { color: "#f3f4f6" } }
+          }
+        }
+      });
+    }
+
+    const tbody = document.getElementById("historyTableBody");
+    if (rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" class="p-3 text-center text-gray-400">कोई पुराना रिकॉर्ड नहीं मिला</td></tr>`;
+    } else {
+      tbody.innerHTML = [...rows].reverse().map(r => `
+        <tr class="hover:bg-gray-50">
+          <td class="p-2 font-medium">${r.price_date}</td>
+          <td class="p-2 text-gray-600">₹${r.price_min}</td>
+          <td class="p-2 font-bold text-emerald-700">₹${r.price_modal || '-'}</td>
+          <td class="p-2 text-gray-600">₹${r.price_max}</td>
+          <td class="p-2 text-gray-500">${r.arrival_quantity || '0'}</td>
+        </tr>
+      `).join("");
+    }
   } catch (err) {
-    alert("त्रुटि: " + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.innerText = "भाव दर्ज करें (Submit)";
+    console.error("Trend Query Error:", err);
   }
 };
 
-// शुरुआती लोड
-loadRates();
+// -------------------------------------------------------------
+// 5. Market News Engine
+// -------------------------------------------------------------
+async function loadMarketNews() {
+  const container = document.getElementById("newsContainer");
+  try {
+    const rows = await executeSQL(`
+      SELECT n.*, m.name as mandi_name 
+      FROM market_news n 
+      JOIN mandis m ON n.mandi_id = m.id 
+      ORDER BY n.id DESC LIMIT 30;
+    `);
+
+    if (!rows || rows.length === 0) {
+      container.innerHTML = `<div class="bg-white p-6 rounded-xl text-center text-xs text-gray-400">अभी कोई समाचार उपलब्ध नहीं है।</div>`;
+      return;
+    }
+
+    container.innerHTML = rows.map(n => `
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <div class="flex justify-between items-start mb-1">
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded ${n.sentiment === 'तेजी' ? 'bg-green-100 text-green-800' : n.sentiment === 'मंदी' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-700'}">
+            ${n.sentiment}
+          </span>
+          <span class="text-[10px] text-gray-400">📍 ${n.mandi_name} | ${String(n.created_at).slice(0, 10)}</span>
+        </div>
+        <h3 class="font-bold text-sm text-gray-900 mt-1">${n.title}</h3>
+        <p class="text-xs text-gray-600 mt-1 leading-relaxed">${n.report_text}</p>
+        <p class="text-[10px] text-gray-400 mt-2 text-right">रिपोर्टर: <strong class="text-gray-600">${n.reporter_name}</strong></p>
+      </div>
+    `).join("");
+  } catch (err) {
+    container.innerHTML = `<div class="text-xs text-red-500">न्यूज़ लोड नहीं हो सकी</div>`;
+  }
+}
+
+// -------------------------------------------------------------
+// 6. Submissions (Operator, Trader, Reporter, Master)
+// -------------------------------------------------------------
+window.submitOperatorRate = async function(e) {
+  e.preventDefault();
+  const mId = document.getElementById("opMandi").value;
+  const cId = document.getElementById("opCrop").value;
+  const pMin = document.getElementById("opMin").value;
+  const pModal = document.getElementById("opModal").value;
+  const pMax = document.getElementById("opMax").value;
+  const arr = document.getElementById("opArrival").value || 0;
+  const dateVal = globalDate.value;
+
+  try {
+    await executeSQL(`
+      INSERT INTO price_records (mandi_id, commodity_id, source_type, price_min, price_max, price_modal, arrival_quantity, price_date, status)
+      VALUES (${mId}, ${cId}, 'MANDI_OPERATOR', ${pMin}, ${pMax}, ${pModal}, ${arr}, '${dateVal}', 'approved');
+    `);
+    alert("✅ मंडी नीलामी भाव दर्ज हो गया!");
+    document.getElementById("operatorForm").reset();
+    window.switchTab("view-home");
+    loadLiveRates();
+  } catch (err) {
+    alert("त्रुटि: " + err.message);
+  }
+};
+
+window.submitTraderRate = async function(e) {
+  e.preventDefault();
+  const firm = document.getElementById("traderFirm").value;
+  const mId = document.getElementById("traderMandi").value;
+  const cId = document.getElementById("traderCrop").value;
+  const qGrade = document.getElementById("traderQuality").value;
+  const pMin = document.getElementById("traderMin").value;
+  const pMax = document.getElementById("traderMax").value;
+  const pModal = (parseFloat(pMin) + parseFloat(pMax)) / 2;
+  const dateVal = globalDate.value;
+
+  try {
+    await executeSQL(`
+      INSERT INTO price_records (mandi_id, commodity_id, source_type, firm_name, quality_grade, price_min, price_max, price_modal, price_date, status)
+      VALUES (${mId}, ${cId}, 'TRADER', '${firm}', '${qGrade}', ${pMin}, ${pMax}, ${pModal}, '${dateVal}', 'approved');
+    `);
+    alert("✅ व्यापारी खरीद भाव दर्ज हो गया!");
+    document.getElementById("traderForm").reset();
+    window.switchTab("view-home");
+    loadLiveRates();
+  } catch (err) {
+    alert("त्रुटि: " + err.message);
+  }
+};
+
+window.submitNewsReport = async function(e) {
+  e.preventDefault();
+  const rep = document.getElementById("repName").value;
+  const mId = document.getElementById("repMandi").value;
+  const sent = document.getElementById("repSentiment").value;
+  const title = document.getElementById("repTitle").value;
+  const content = document.getElementById("repContent").value;
+
+  try {
+    await executeSQL(`
+      INSERT INTO market_news (mandi_id, title, report_text, reporter_name, sentiment)
+      VALUES (${mId}, '${title}', '${content}', '${rep}', '${sent}');
+    `);
+    alert("✅ समाचार प्रकाशित हो गया!");
+    document.getElementById("reporterForm").reset();
+    window.switchTab("view-news");
+    loadMarketNews();
+  } catch (err) {
+    alert("त्रुटि: " + err.message);
+  }
+};
+
+window.addNewMandi = async function(e) {
+  e.preventDefault();
+  const name = document.getElementById("newMandiName").value.trim();
+  const dist = document.getElementById("newMandiDistrict").value.trim();
+  try {
+    await executeSQL(`INSERT INTO mandis (name, district) VALUES ('${name}', '${dist}');`);
+    alert(`✅ मंडी '${name}' जुड़ गई!`);
+    document.getElementById("newMandiName").value = "";
+    document.getElementById("newMandiDistrict").value = "";
+    initAppData();
+  } catch (err) {
+    alert("त्रुटि: " + err.message);
+  }
+};
+
+window.addNewCommodity = async function(e) {
+  e.preventDefault();
+  const name = document.getElementById("newCropName").value.trim();
+  const cat = document.getElementById("newCropCat").value;
+  try {
+    await executeSQL(`INSERT INTO commodities (name_hi, category) VALUES ('${name}', '${cat}');`);
+    alert(`✅ फसल '${name}' जुड़ गई!`);
+    document.getElementById("newCropName").value = "";
+    initAppData();
+  } catch (err) {
+    alert("त्रुटि: " + err.message);
+  }
+};
+
+// -------------------------------------------------------------
+// 7. Navigation Tabs
+// -------------------------------------------------------------
+window.switchTab = function(viewId) {
+  document.querySelectorAll(".page-view").forEach(el => el.classList.add("hidden"));
+  document.getElementById(viewId)?.classList.remove("hidden");
+
+  document.querySelectorAll(".nav-btn").forEach(btn => {
+    btn.classList.remove("text-emerald-800");
+    btn.classList.add("text-gray-400");
+    btn.querySelector("span:last-child").classList.remove("font-bold");
+  });
+
+  const activeBtn = document.getElementById("tab-btn-" + viewId.replace("view-", ""));
+  if (activeBtn) {
+    activeBtn.classList.add("text-emerald-800");
+    activeBtn.classList.remove("text-gray-400");
+    activeBtn.querySelector("span:last-child").classList.add("font-bold");
+  }
+
+  const searchSec = document.getElementById("searchSection");
+  if (viewId === "view-home") {
+    searchSec?.classList.remove("hidden");
+  } else {
+    searchSec?.classList.add("hidden");
+  }
+
+  if (viewId === "view-trend") window.loadTrendData(7);
+  if (viewId === "view-news") loadMarketNews();
+};
+
+window.switchEntryPanel = function(type) {
+  document.querySelectorAll(".entry-subpanel").forEach(el => el.classList.add("hidden"));
+  document.getElementById(`subpanel-${type}`)?.classList.remove("hidden");
+
+  ['operator', 'trader', 'reporter', 'master'].forEach(t => {
+    const btn = document.getElementById(`p-tab-${t}`);
+    if (t === type) {
+      btn.className = "flex-1 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm text-center font-bold";
+    } else {
+      btn.className = "flex-1 py-1.5 rounded-lg text-center font-medium text-gray-600";
+    }
+  });
+};
+
+// Start
+initAppData();
