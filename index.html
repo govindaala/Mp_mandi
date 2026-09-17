@@ -15,11 +15,11 @@
 </head>
 <body class="bg-gray-100 text-gray-900 pb-24 select-none font-sans">
 
-  <!-- Header -->
+  <!-- App Header -->
   <header class="bg-emerald-800 text-white sticky top-0 z-50 shadow-md">
     <div class="px-4 py-3 flex justify-between items-center">
       <div class="flex items-center gap-2">
-        <button id="btnBack" onclick="switchView('view-home')" class="hidden text-xl font-bold pr-1">←</button>
+        <button id="btnBack" onclick="goBackHome()" class="hidden text-2xl font-bold pr-1 text-emerald-200 hover:text-white">←</button>
         <div>
           <h1 id="topTitle" class="text-base font-bold leading-tight">🌾 डिजिटल कृषि मंडी</h1>
           <p id="topSub" class="text-[10px] text-emerald-200">MP मंडी बोर्ड नीलामी + राजस्थान आढ़त भाव</p>
@@ -28,7 +28,7 @@
       <input type="date" id="globalDate" onchange="onDateChanged()" class="bg-emerald-900 text-white text-xs px-2 py-1 rounded border border-emerald-700 outline-none" />
     </div>
 
-    <!-- Live Search Bar -->
+    <!-- Search Bar -->
     <div id="searchWrap" class="px-4 pb-2.5">
       <div class="relative">
         <input type="text" id="globalSearch" oninput="renderRates()" placeholder="फसल, मंडी, दुकान या आढ़तिया खोजें..." 
@@ -40,7 +40,7 @@
 
   <!-- ================= 1. HOME SCREEN (मुख्य भाव) ================= -->
   <section id="view-home" class="page-view p-3 space-y-3">
-    <!-- Date Quick Toggles -->
+    <!-- Date Toggles -->
     <div class="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm text-xs border border-gray-100">
       <div class="flex items-center gap-1.5">
         <span class="text-gray-500 font-medium">तारीख:</span>
@@ -52,23 +52,85 @@
       </div>
     </div>
 
-    <!-- State/System Filter Buttons -->
+    <!-- Filter Buttons -->
     <div class="flex gap-2 text-xs">
       <button onclick="setSourceFilter('ALL')" id="flt-all" class="flex-1 py-1.5 rounded-lg bg-emerald-800 text-white font-bold shadow-sm text-center">सभी भाव</button>
       <button onclick="setSourceFilter('MP_BOARD')" id="flt-mp" class="flex-1 py-1.5 rounded-lg bg-white text-gray-700 font-semibold shadow-sm text-center">🏛️ MP बोर्ड</button>
       <button onclick="setSourceFilter('RJ_ADATH')" id="flt-rj" class="flex-1 py-1.5 rounded-lg bg-white text-gray-700 font-semibold shadow-sm text-center">🏪 राज. आढ़त</button>
     </div>
 
-    <!-- Quick Mandi Chips -->
+    <!-- Mandi Chips -->
     <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar text-xs" id="mandiChips"></div>
 
-    <!-- Live Rates Cards Stream -->
+    <!-- Card Stream -->
     <div id="ratesContainer" class="space-y-3">
       <div class="text-center py-10 text-gray-400 text-xs">भाव लोड हो रहे हैं...</div>
     </div>
   </section>
 
-  <!-- ================= 2. COMPARISON SCREEN (तुलना पेज) ================= -->
+  <!-- ================= 2. DYNAMIC CROP PROFILE (फसल पर क्लिक करने पर) ================= -->
+  <section id="view-crop-profile" class="page-view p-3 space-y-3 hidden">
+    <!-- Header Banner -->
+    <div class="bg-gradient-to-r from-emerald-800 to-teal-800 text-white p-4 rounded-2xl shadow-sm">
+      <div class="flex justify-between items-start">
+        <div>
+          <span class="text-[10px] bg-emerald-700/80 px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider text-emerald-100">फसल विशेष रिपोर्ट</span>
+          <h2 id="cropProfileTitle" class="text-xl font-black mt-1">सोयाबीन</h2>
+          <p id="cropProfileMeta" class="text-xs text-emerald-200 mt-0.5">आसपास की मंडियों में आज के भाव व रुझान</p>
+        </div>
+        <span class="text-3xl">🌱</span>
+      </div>
+    </div>
+
+    <!-- Nearby Mandis Selling this Crop -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-2.5">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+          <span>📍</span> विभिन्न मंडियों में आज के भाव (तुलना)
+        </h3>
+        <span id="cropMandiCount" class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">0 मंडियां</span>
+      </div>
+      <div id="cropNearbyMandisList" class="space-y-2"></div>
+    </div>
+
+    <!-- Crop Specific Graph -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-3">
+      <div class="flex justify-between items-center">
+        <h3 class="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+          <span>📈</span> मूल्य ट्रेंड चार्ट
+        </h3>
+        <div class="flex gap-1 text-[10px]">
+          <button onclick="setCropTrendDays(7)" id="btn-ct7" class="px-2 py-0.5 rounded font-bold bg-emerald-800 text-white">7 दिन</button>
+          <button onclick="setCropTrendDays(30)" id="btn-ct30" class="px-2 py-0.5 rounded font-medium bg-gray-100 text-gray-700">30 दिन</button>
+          <button onclick="setCropTrendDays(90)" id="btn-ct90" class="px-2 py-0.5 rounded font-medium bg-gray-100 text-gray-700">3 माह</button>
+        </div>
+      </div>
+      <div class="h-56 relative w-full">
+        <canvas id="cropProfileCanvas"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 3. DYNAMIC MANDI / TRADER PROFILE (मंडी/व्यापारी पर क्लिक करने पर) ================= -->
+  <section id="view-mandi-profile" class="page-view p-3 space-y-3 hidden">
+    <!-- Header Card -->
+    <div class="bg-white p-4 rounded-2xl shadow-sm border-l-4 border-emerald-700 border-gray-100 space-y-1">
+      <span id="mandiProfileBadge" class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">🏛️ MP मंडी बोर्ड समिति</span>
+      <h2 id="mandiProfileTitle" class="text-lg font-black text-gray-900">मंदसौर मंडी समिति</h2>
+      <p id="mandiProfileMeta" class="text-xs text-gray-500">जिला: मंदसौर | राज्य: मध्य प्रदेश</p>
+    </div>
+
+    <!-- All Crops in this Mandi -->
+    <div class="space-y-2">
+      <div class="flex justify-between items-center px-1">
+        <h3 class="text-xs font-bold text-gray-700">आज के सभी फसल भाव</h3>
+        <span id="mandiCropCount" class="text-xs text-emerald-800 font-bold">0 फसलें लाइव</span>
+      </div>
+      <div id="mandiAllCropsList" class="space-y-2.5"></div>
+    </div>
+  </section>
+
+  <!-- ================= 4. COMPARISON SCREEN (तुलना पेज) ================= -->
   <section id="view-compare" class="page-view p-3 space-y-3 hidden">
     <div class="bg-white p-4 rounded-xl shadow-sm space-y-3 border border-gray-100">
       <div class="border-b pb-2">
@@ -100,9 +162,8 @@
     <div id="compareResultContainer" class="space-y-2"></div>
   </section>
 
-  <!-- ================= 3. TREND SCREEN (ट्रेंड, ग्राफ व इतिहास टेबल) ================= -->
+  <!-- ================= 5. TREND SCREEN (सामान्य ट्रेंड व इतिहास) ================= -->
   <section id="view-trend" class="page-view p-3 space-y-3 hidden">
-    <!-- Chart Box -->
     <div class="bg-white p-4 rounded-xl shadow-sm space-y-3 border border-gray-100">
       <h2 class="text-sm font-bold text-gray-800 flex items-center gap-1.5">
         <span>📈</span> फसल का ऐतिहासिक ट्रेंड व ग्राफ
@@ -118,22 +179,20 @@
         </div>
       </div>
 
-      <!-- Timeframe Buttons -->
       <div class="flex gap-2 justify-center pt-1 text-xs">
-        <button onclick="setTrendDays(7)" id="btn-t7" class="trend-tbtn bg-emerald-700 text-white px-3 py-1 rounded font-bold">7 दिन</button>
+        <button onclick="setTrendDays(7)" id="btn-t7" class="trend-tbtn bg-gray-100 text-gray-700 px-3 py-1 rounded font-medium">7 दिन</button>
         <button onclick="setTrendDays(30)" id="btn-t30" class="trend-tbtn bg-gray-100 text-gray-700 px-3 py-1 rounded font-medium">30 दिन</button>
         <button onclick="setTrendDays(90)" id="btn-t90" class="trend-tbtn bg-emerald-700 text-white px-3 py-1 rounded font-bold">3 माह</button>
         <button onclick="setTrendDays(365)" id="btn-t365" class="trend-tbtn bg-gray-100 text-gray-700 px-3 py-1 rounded font-medium">1 वर्ष</button>
       </div>
 
-      <!-- Canvas -->
       <div class="h-60 relative w-full pt-1">
         <canvas id="trendChartCanvas"></canvas>
       </div>
-      <p class="text-[10px] text-gray-400 text-center">नोट: केवल नीलामी वाले कार्यदिवस प्रदर्शित हैं (छुट्टियां शामिल नहीं हैं)</p>
+      <p class="text-[10px] text-gray-400 text-center">केवल नीलामी वाले कार्यदिवस प्रदर्शित हैं</p>
     </div>
 
-    <!-- History Table (ग्राफ के ठीक नीचे दैनिक रिकॉर्ड) -->
+    <!-- History Table -->
     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-2">
       <div class="flex justify-between items-center border-b pb-2">
         <h3 class="text-xs font-bold text-gray-900 flex items-center gap-1.5">
@@ -162,9 +221,9 @@
     </div>
   </section>
 
-  <!-- ================= 4. PUBLISHING / ENTRY PANELS ================= -->
+  <!-- ================= 6. PUBLISHING / ENTRY PANELS ================= -->
   <section id="view-entry" class="page-view p-3 space-y-3 hidden">
-    <!-- Smart WhatsApp Box -->
+    <!-- WhatsApp Box -->
     <div class="bg-gradient-to-r from-emerald-50 to-teal-50 p-4 rounded-xl border border-emerald-300 shadow-sm space-y-2">
       <div class="flex items-center justify-between">
         <span class="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
@@ -377,8 +436,11 @@
     let activeMandiFilter = "all";
     let activeSourceFilter = "ALL";
     let activeDateMode = "SELECTED";
-    let trendDays = 90; // Default to 3 months to match screenshot
+    let trendDays = 90;
+    let cropTrendDays = 7;
+    let activeCropProfileId = null;
     let chartInstance = null;
+    let cropChartInstance = null;
     let parsedResultGlobal = null;
 
     window.addEventListener("DOMContentLoaded", () => {
@@ -417,7 +479,7 @@
         LEFT JOIN mandis m ON p.mandi_id = m.id
         LEFT JOIN commodities c ON p.commodity_id = c.id
         WHERE p.status = 'approved'
-        ORDER BY p.id DESC LIMIT 300;
+        ORDER BY p.id DESC LIMIT 400;
       `);
 
       if (live && live.length > 0) {
@@ -435,7 +497,6 @@
         if (el) el.innerHTML = mandis.map(m => `<option value="${m.id}">${m.name} (${m.district})</option>`).join("");
       });
 
-      // Default Mandi = भवानीमंडी (id 3)
       if (document.getElementById("trendMandi") && mandis.find(x => x.id === 3)) {
         document.getElementById("trendMandi").value = 3;
       }
@@ -503,6 +564,7 @@
       setDateMode('SELECTED');
     };
 
+    // ================= DYNAMIC CARDS RENDERING (CLICKABLE) =================
     function renderRates() {
       const container = document.getElementById("ratesContainer");
       const search = document.getElementById("globalSearch")?.value.trim().toLowerCase() || "";
@@ -536,78 +598,271 @@
       }
 
       container.innerHTML = filtered.map(r => {
-        if (r.source_type === "MP_BOARD" || r.source_type === "MANDI_OPERATOR") {
-          return `
-            <div class="bg-white rounded-xl p-3.5 shadow-sm border-l-4 border-emerald-700 border-gray-100">
-              <div class="flex justify-between items-start mb-1.5">
-                <div>
-                  <div class="flex items-center gap-1.5">
-                    <h3 class="text-base font-bold text-gray-900 leading-tight">${r.crop_name}</h3>
-                    <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">🏛️ MP बोर्ड</span>
-                  </div>
-                  <p class="text-xs text-emerald-700 font-medium mt-0.5">📍 ${r.mandi_name} मंडी समिति</p>
-                  <p class="text-[10px] text-gray-500 mt-0.5">${r.quality_grade || 'आधिकारिक नीलामी'}</p>
-                </div>
-                <span class="text-[10px] bg-gray-100 text-gray-700 font-semibold px-2 py-0.5 rounded">${r.price_date || ''}</span>
-              </div>
-
-              <div class="grid grid-cols-3 gap-1.5 bg-emerald-50/50 p-2 rounded-lg text-center border border-emerald-100">
-                <div><span class="text-[9px] text-gray-500 block">न्यूनतम</span><span class="text-xs font-bold text-gray-700">₹${r.price_min}</span></div>
-                <div class="border-x border-emerald-200"><span class="text-[9px] text-emerald-700 font-bold block">मॉडल (औसत)</span><span class="text-sm font-extrabold text-emerald-800">₹${r.price_modal || r.price_min}</span></div>
-                <div><span class="text-[9px] text-gray-500 block">अधिकतम</span><span class="text-xs font-bold text-gray-700">₹${r.price_max}</span></div>
-              </div>
-
-              <div class="flex justify-between items-center text-[10px] text-gray-500 mt-2 pt-1 border-t border-gray-50">
-                <span>🚛 आवक: <strong class="text-gray-800">${r.arrival_quantity || '0'} बोरी</strong></span>
-                <span class="text-emerald-700 font-semibold">✓ समिति प्रमाणित</span>
-              </div>
-            </div>`;
-        }
-
+        const isMP = (r.source_type === "MP_BOARD" || r.source_type === "MANDI_OPERATOR");
+        
         return `
-          <div class="bg-white rounded-xl p-3.5 shadow-sm border-l-4 border-blue-600 border-gray-100">
+          <div class="bg-white rounded-xl p-3.5 shadow-sm border-l-4 ${isMP ? 'border-emerald-700' : 'border-blue-600'} border-gray-100 transition">
+            
+            <!-- Top Row: Clickable Crop & Badge -->
             <div class="flex justify-between items-start mb-1.5">
               <div>
                 <div class="flex items-center gap-1.5">
-                  <h3 class="text-base font-bold text-gray-900 leading-tight">${r.crop_name}</h3>
-                  <span class="text-[9px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full">🏪 राज. आढ़त</span>
+                  <!-- Crop Clickable Button -->
+                  <button onclick="openCropProfile(${r.commodity_id}, '${r.crop_name}')" 
+                          class="text-base font-black text-gray-900 hover:text-emerald-700 flex items-center gap-1 group text-left">
+                    <span>${r.crop_name}</span>
+                    <span class="text-[10px] text-gray-400 group-hover:text-emerald-700 group-hover:translate-x-0.5 transition font-normal">➔ ट्रेंड</span>
+                  </button>
+
+                  <span class="text-[9px] ${isMP ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'} font-bold px-2 py-0.5 rounded-full">
+                    ${isMP ? '🏛️ MP बोर्ड' : '🏪 राज. आढ़त'}
+                  </span>
                 </div>
-                <p class="text-xs text-blue-900 font-bold mt-0.5">🏬 ${r.firm_name || 'व्यापारी फर्म'}</p>
-                <p class="text-[10px] text-gray-500">📍 ${r.mandi_name} मंडी</p>
+
+                <!-- Mandi/Trader Clickable Button -->
+                <button onclick="openMandiProfile(${r.mandi_id}, '${r.mandi_name}', '${r.firm_name || ''}', '${r.source_type}')" 
+                        class="text-left mt-0.5 block hover:underline">
+                  <p class="text-xs ${isMP ? 'text-emerald-800 font-semibold' : 'text-blue-900 font-bold'} flex items-center gap-1">
+                    <span>📍</span> 
+                    <span>${isMP ? (r.mandi_name + ' मंडी समिति') : (r.firm_name || r.mandi_name + ' मंडी')}</span>
+                    <span class="text-[10px] text-gray-400">➔ सभी भाव</span>
+                  </p>
+                </button>
+
+                <p class="text-[10px] text-gray-500 mt-0.5">${r.quality_grade || 'सामान्य डाक / खरीद'}</p>
               </div>
-              <span class="text-[10px] bg-blue-50 text-blue-800 font-semibold px-2 py-0.5 rounded">${r.price_date || ''}</span>
+
+              <span class="text-[10px] ${isMP ? 'bg-gray-100 text-gray-700' : 'bg-blue-50 text-blue-800'} font-semibold px-2 py-0.5 rounded">
+                ${r.price_date || ''}
+              </span>
             </div>
 
-            <div class="bg-gray-50 p-2 rounded-lg text-[11px] text-gray-700 mb-2 border border-gray-100">
-              <span class="block text-gray-400 text-[9px] uppercase font-bold">क्वालिटी / मानक</span>
-              <p class="font-semibold text-gray-800">${r.quality_grade || 'सामान्य खरीद'}</p>
+            <!-- Price Grid -->
+            <div class="grid grid-cols-3 gap-1.5 ${isMP ? 'bg-emerald-50/50 border-emerald-100' : 'bg-blue-50/40 border-blue-100'} p-2 rounded-lg text-center border mt-2">
+              <div><span class="text-[9px] text-gray-500 block">न्यूनतम</span><span class="text-xs font-bold text-gray-700">₹${r.price_min}</span></div>
+              <div class="border-x ${isMP ? 'border-emerald-200' : 'border-blue-200'}">
+                <span class="text-[9px] ${isMP ? 'text-emerald-700' : 'text-blue-700'} font-bold block">मॉडल (औसत)</span>
+                <span class="text-sm font-extrabold ${isMP ? 'text-emerald-800' : 'text-blue-900'}">₹${r.price_modal || r.price_min}</span>
+              </div>
+              <div><span class="text-[9px] text-gray-500 block">अधिकतम</span><span class="text-xs font-bold text-gray-700">₹${r.price_max}</span></div>
             </div>
 
-            <div class="grid grid-cols-2 gap-2 bg-blue-50/40 p-2 rounded-lg text-center border border-blue-100">
-              <div><span class="text-[9px] text-gray-500 block">न्यूनतम खरीद</span><span class="text-xs font-bold text-gray-700">₹${r.price_min}</span></div>
-              <div><span class="text-[9px] text-blue-700 font-bold block">उच्चतम खरीद</span><span class="text-sm font-extrabold text-blue-800">₹${r.price_max}</span></div>
+            <!-- Bottom Row -->
+            <div class="flex justify-between items-center text-[10px] text-gray-500 mt-2 pt-1 border-t border-gray-50">
+              <span>🚛 आवक: <strong class="text-gray-800">${r.arrival_quantity || '0'} बोरी</strong></span>
+              <span class="${isMP ? 'text-emerald-700 font-semibold' : 'text-blue-700 font-medium'}">
+                ${isMP ? '✓ समिति प्रमाणित' : 'कांटे पर नकद'}
+              </span>
             </div>
-
-            <div class="flex justify-between items-center text-[11px] mt-2 pt-1 border-t border-gray-50">
-              <span class="text-[10px] text-gray-500">कांटे पर नकद भुगतान</span>
-              <a href="https://wa.me/?text=मंडी भाव: ${r.crop_name} ₹${r.price_min} - ₹${r.price_max} (${r.mandi_name})" target="_blank" 
-                 class="inline-flex items-center gap-1 bg-green-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-md shadow-sm">
-                <span>💬</span> शेयर करें
-              </a>
-            </div>
-          </div>`;
+          </div>
+        `;
       }).join("");
     }
+
+    // ================= ACTION 1: OPEN DYNAMIC CROP PROFILE =================
+    window.openCropProfile = async function(cropId, cropName) {
+      activeCropProfileId = cropId;
+      document.getElementById("cropProfileTitle").innerText = cropName;
+      document.getElementById("cropProfileMeta").innerText = `${cropName} का विभिन्न मंडियों में आज का भाव व ऐतिहासिक चार्ट`;
+
+      // 1. Filter all rates for this crop across all mandis (today / latest)
+      const thisCropRates = rates.filter(r => r.commodity_id == cropId);
+      const mCount = new Set(thisCropRates.map(r => r.mandi_name)).size;
+      document.getElementById("cropMandiCount").innerText = `${mCount} मंडियां लाइव`;
+
+      const listContainer = document.getElementById("cropNearbyMandisList");
+      if (thisCropRates.length === 0) {
+        listContainer.innerHTML = `<p class="text-xs text-gray-400 py-3 text-center">इस फसल का कोई भाव दर्ज नहीं है।</p>`;
+      } else {
+        listContainer.innerHTML = thisCropRates.map(r => `
+          <div class="p-2.5 bg-gray-50 hover:bg-emerald-50/60 rounded-xl border border-gray-200/70 flex justify-between items-center transition">
+            <div>
+              <button onclick="openMandiProfile(${r.mandi_id}, '${r.mandi_name}', '${r.firm_name || ''}', '${r.source_type}')" 
+                      class="text-left font-bold text-xs text-gray-900 hover:text-emerald-800 flex items-center gap-1">
+                <span>📍 ${r.mandi_name} मंडी</span>
+                <span class="text-[9px] text-gray-400">➔</span>
+              </button>
+              <p class="text-[10px] text-gray-500 mt-0.5">${r.quality_grade || 'सामान्य क्वालिटी'} | आवक: ${r.arrival_quantity || '0'} बोरी</p>
+            </div>
+            <div class="text-right">
+              <span class="text-sm font-black text-emerald-800">₹${r.price_modal}</span>
+              <span class="text-[9px] text-gray-400 block font-mono">₹${r.price_min} - ₹${r.price_max}</span>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      // 2. Load and Render Crop Trend Chart
+      await renderCropProfileChart(cropId, cropTrendDays);
+
+      // Switch View
+      switchView("view-crop-profile", cropName, "फसल रिपोर्ट");
+    };
+
+    window.setCropTrendDays = function(days) {
+      cropTrendDays = days;
+      [7, 30, 90].forEach(d => {
+        const b = document.getElementById(`btn-ct${d}`);
+        if (b) b.className = (d === days) 
+          ? "px-2 py-0.5 rounded font-bold bg-emerald-800 text-white" 
+          : "px-2 py-0.5 rounded font-medium bg-gray-100 text-gray-700";
+      });
+      if (activeCropProfileId) renderCropProfileChart(activeCropProfileId, days);
+    };
+
+    async function renderCropProfileChart(cropId, days) {
+      const rows = await sqlQuery(`
+        SELECT price_date, ROUND(AVG(price_modal)) as price_modal 
+        FROM price_records 
+        WHERE commodity_id = ${cropId}
+        GROUP BY price_date
+        ORDER BY price_date DESC LIMIT ${days};
+      `);
+
+      const dataPoints = (rows && rows.length > 0) ? [...rows].reverse() : [];
+      const ctx = document.getElementById("cropProfileCanvas")?.getContext("2d");
+      if (cropChartInstance) cropChartInstance.destroy();
+
+      if (window.Chart && ctx) {
+        cropChartInstance = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: dataPoints.map(d => String(d.price_date).slice(-5)),
+            datasets: [{
+              label: "औसत मॉडल भाव (₹)",
+              data: dataPoints.map(d => d.price_modal),
+              borderColor: "#047857",
+              backgroundColor: "rgba(4, 120, 87, 0.12)",
+              borderWidth: 2.5,
+              fill: true,
+              tension: 0.25,
+              pointBackgroundColor: "#047857",
+              pointRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { display: false }, ticks: { font: { size: 9 } } },
+              y: { grid: { color: "#f3f4f6" }, ticks: { font: { size: 9 }, callback: (v) => "₹" + v } }
+            }
+          }
+        });
+      }
+    }
+
+    // ================= ACTION 2: OPEN DYNAMIC MANDI / TRADER PROFILE =================
+    window.openMandiProfile = function(mandiId, mandiName, firmName, sourceType) {
+      const isMP = (sourceType === "MP_BOARD" || sourceType === "MANDI_OPERATOR");
+      
+      const titleEl = document.getElementById("mandiProfileTitle");
+      const metaEl = document.getElementById("mandiProfileMeta");
+      const badgeEl = document.getElementById("mandiProfileBadge");
+
+      if (isMP) {
+        titleEl.innerText = `${mandiName} कृषि उपज मंडी समिति`;
+        metaEl.innerText = `आधिकारिक नीलामी डाक यार्ड | मंडी बोर्ड प्रमाणित`;
+        badgeEl.innerText = "🏛️ MP मंडी बोर्ड समिति";
+        badgeEl.className = "text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full";
+      } else {
+        titleEl.innerText = firmName || `${mandiName} आढ़त मंडी`;
+        metaEl.innerText = `दुकान / आढ़त परिसर: ${mandiName} मंडी`;
+        badgeEl.innerText = "🏪 राजस्थान आढ़त";
+        badgeEl.className = "text-[9px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full";
+      }
+
+      // Filter all crops for this mandi
+      const mandiRates = rates.filter(r => r.mandi_id == mandiId);
+      document.getElementById("mandiCropCount").innerText = `${mandiRates.length} फसलें उपलब्ध`;
+
+      const listContainer = document.getElementById("mandiAllCropsList");
+      if (mandiRates.length === 0) {
+        listContainer.innerHTML = `<p class="text-xs text-gray-400 py-6 text-center bg-white rounded-xl shadow-sm">इस मंडी में आज कोई भाव दर्ज नहीं है।</p>`;
+      } else {
+        listContainer.innerHTML = mandiRates.map(r => `
+          <div class="bg-white p-3.5 rounded-xl border border-gray-100 shadow-sm space-y-2">
+            <div class="flex justify-between items-start">
+              <div>
+                <button onclick="openCropProfile(${r.commodity_id}, '${r.crop_name}')" 
+                        class="text-sm font-black text-gray-900 hover:text-emerald-700 flex items-center gap-1">
+                  <span>${r.crop_name}</span>
+                  <span class="text-[10px] text-gray-400">➔ ट्रेंड</span>
+                </button>
+                <p class="text-[10px] text-gray-500">${r.quality_grade || 'सामान्य'}</p>
+              </div>
+              <span class="text-[10px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded font-mono">${r.price_date || ''}</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-1 bg-gray-50 p-2 rounded-lg text-center text-xs">
+              <div><span class="text-[9px] text-gray-400 block">न्यूनतम</span><strong class="text-gray-700">₹${r.price_min}</strong></div>
+              <div class="border-x border-gray-200"><span class="text-[9px] text-emerald-700 font-bold block">मॉडल भाव</span><strong class="text-emerald-800 text-sm">₹${r.price_modal}</strong></div>
+              <div><span class="text-[9px] text-gray-400 block">अधिकतम</span><strong class="text-gray-700">₹${r.price_max}</strong></div>
+            </div>
+
+            <div class="flex justify-between text-[10px] text-gray-400 pt-1">
+              <span>आवक: <strong>${r.arrival_quantity || '0'} बोरी</strong></span>
+              <span>कांटे पर भुगतान</span>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      switchView("view-mandi-profile", mandiName, "मंडी विवरण");
+    };
+
+    // ================= NAVIGATION & VIEW SWITCH =================
+    function switchView(viewId, customTitle = null, customSub = null) {
+      document.querySelectorAll(".page-view").forEach(el => el.classList.add("hidden"));
+      document.getElementById(viewId)?.classList.remove("hidden");
+      currentView = viewId;
+
+      const btnBack = document.getElementById("btnBack");
+      const titleEl = document.getElementById("topTitle");
+      const subEl = document.getElementById("topSub");
+      const searchWrap = document.getElementById("searchWrap");
+
+      // Dynamic sub-page back button handling
+      if (viewId === "view-crop-profile" || viewId === "view-mandi-profile") {
+        btnBack.classList.remove("hidden");
+        titleEl.innerText = customTitle || "विवरण";
+        subEl.innerText = customSub || "मंडी भाव नेटवर्क";
+        searchWrap.classList.add("hidden");
+      } else {
+        btnBack.classList.add("hidden");
+        titleEl.innerText = "🌾 डिजिटल कृषि मंडी";
+        subEl.innerText = "MP मंडी बोर्ड नीलामी + राजस्थान आढ़त भाव";
+        if (viewId === "view-home") searchWrap.classList.remove("hidden");
+        else searchWrap.classList.add("hidden");
+      }
+
+      // Nav Tabs
+      document.querySelectorAll(".nav-tab").forEach(b => {
+        const target = b.id.replace("nav-btn-", "view-");
+        if (target === viewId) {
+          b.className = "nav-tab flex flex-col items-center text-emerald-800";
+          b.querySelector("span:last-child").className = "text-[10px] font-bold";
+        } else {
+          b.className = "nav-tab flex flex-col items-center text-gray-400";
+          b.querySelector("span:last-child").className = "text-[10px] font-medium";
+        }
+      });
+
+      if (viewId === "view-compare") renderComparisonResult();
+      if (viewId === "view-trend") updateTrendChart();
+    }
+
+    window.goBackHome = function() {
+      switchView("view-home");
+    };
 
     // ================= WHATSAPP PARSER =================
     function parseWhatsAppMessageText(raw) {
       const dMatch = raw.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
       let pDate = new Date().toISOString().split('T')[0];
       if (dMatch) {
-        const day = dMatch[1].padStart(2, '0');
-        const month = dMatch[2].padStart(2, '0');
-        const year = dMatch[3];
-        pDate = `${year}-${month}-${day}`;
+        pDate = `${dMatch[3]}-${dMatch[2].padStart(2, '0')}-${dMatch[1].padStart(2, '0')}`;
       }
 
       let matchedMandi = "भवानीमंडी";
@@ -795,6 +1050,7 @@
               <p class="text-[10px] text-gray-600 mt-1 font-semibold">₹${r1.price_min} - ₹${r1.price_max}</p>
             ` : `<p class="text-xs text-gray-400 py-6">भाव उपलब्ध नहीं</p>`}
           </div>
+
           <div class="bg-white p-3 rounded-xl border text-center shadow-sm">
             <h4 class="font-bold text-xs text-gray-900">${m2Obj.name}</h4>
             ${r2 ? `
@@ -822,8 +1078,6 @@
       const cId = document.getElementById("trendCrop")?.value;
       if (!mId || !cId) return;
 
-      // महत्वपूर्ण: GROUP BY price_date ताकि एक दिन का एक ही औसत भाव आए और कोई ज़िगज़ैग न हो
-      // और छुट्टियां स्वतः छूट जाएँ
       const rows = await sqlQuery(`
         SELECT 
           price_date, 
@@ -837,15 +1091,11 @@
         ORDER BY price_date DESC LIMIT ${trendDays};
       `);
 
-      // क्रमानुसार लगाने के लिए रिवर्स करें (पुराने से नए की तरफ)
       const dataPoints = (rows && rows.length > 0) ? [...rows].reverse() : [];
-
-      // 1. Render Line Chart
       const ctx = document.getElementById("trendChartCanvas")?.getContext("2d");
       if (chartInstance) chartInstance.destroy();
 
       const labels = dataPoints.map(d => {
-        // MM-DD प्रारूप में
         const parts = String(d.price_date).split("-");
         return parts.length === 3 ? `${parts[2]}/${parts[1]}` : d.price_date;
       });
@@ -865,39 +1115,22 @@
               fill: true,
               tension: 0.25,
               pointBackgroundColor: "#047857",
-              pointRadius: 4,
-              pointHoverRadius: 6
+              pointRadius: 4
             }]
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { 
-              legend: { display: false },
-              tooltip: {
-                callbacks: {
-                  label: (ctx) => ` औसत मॉडल भाव: ₹${ctx.raw}`
-                }
-              }
-            },
+            plugins: { legend: { display: false } },
             scales: { 
-              x: { 
-                grid: { display: false },
-                ticks: { font: { size: 10 } }
-              }, 
-              y: { 
-                grid: { color: "#f3f4f6" },
-                ticks: { 
-                  font: { size: 10 },
-                  callback: (val) => "₹" + val 
-                }
-              } 
+              x: { grid: { display: false }, ticks: { font: { size: 10 } } }, 
+              y: { grid: { color: "#f3f4f6" }, ticks: { font: { size: 10 }, callback: (val) => "₹" + val } } 
             }
           }
         });
       }
 
-      // 2. Render History Table (ग्राफ के नीचे टेबल रेंडर करना)
+      // History Table
       const tbody = document.getElementById("trendTableBody");
       const badge = document.getElementById("trendHistoryBadge");
       badge.innerText = `${dataPoints.length} कार्यदिवस`;
@@ -907,11 +1140,9 @@
         return;
       }
 
-      // नवीनतम तारीख ऊपर दिखाने के लिए उल्टे क्रम में (Descending)
       const descList = [...dataPoints].reverse();
 
       tbody.innerHTML = descList.map((d, index) => {
-        // पिछले दिन से तेजी / मंदी का आकलन
         let diffBadge = `<span class="text-gray-400 font-semibold">-</span>`;
         if (index < descList.length - 1) {
           const prevDayModal = descList[index + 1].price_modal;
@@ -938,31 +1169,6 @@
       }).join("");
     }
 
-    // View Navigation
-    function switchView(viewId) {
-      document.querySelectorAll(".page-view").forEach(el => el.classList.add("hidden"));
-      document.getElementById(viewId)?.classList.remove("hidden");
-      currentView = viewId;
-
-      document.querySelectorAll(".nav-tab").forEach(b => {
-        const target = b.id.replace("nav-btn-", "view-");
-        if (target === viewId) {
-          b.className = "nav-tab flex flex-col items-center text-emerald-800";
-          b.querySelector("span:last-child").className = "text-[10px] font-bold";
-        } else {
-          b.className = "nav-tab flex flex-col items-center text-gray-400";
-          b.querySelector("span:last-child").className = "text-[10px] font-medium";
-        }
-      });
-
-      const searchWrap = document.getElementById("searchWrap");
-      if (viewId === "view-home") searchWrap.classList.remove("hidden");
-      else searchWrap.classList.add("hidden");
-
-      if (viewId === "view-compare") renderComparisonResult();
-      if (viewId === "view-trend") updateTrendChart();
-    }
-
     function switchPublishPanel(type) {
       document.querySelectorAll(".pub-panel").forEach(p => p.classList.add("hidden"));
       document.getElementById(type === 'mp' ? 'panel-mp-board' : 'panel-rj-adath')?.classList.remove("hidden");
@@ -971,7 +1177,6 @@
       document.getElementById('tab-pnl-rj').className = type === 'rj' ? "py-2 rounded-lg bg-emerald-800 text-white shadow-sm text-center font-bold" : "py-2 rounded-lg text-gray-700 text-center font-medium";
     }
 
-    // Manual Submissions
     async function submitMPBoardRate(e) {
       e.preventDefault();
       const mId = document.getElementById("mpMandi").value;
