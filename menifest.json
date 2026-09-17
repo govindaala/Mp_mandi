@@ -1,0 +1,16 @@
+{
+  "name": "मंडी भाव",
+  "short_name": "Mandi Bhav",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#047857",
+  "theme_color": "#047857",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1202/1202125.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
