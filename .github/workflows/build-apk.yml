@@ -3,7 +3,7 @@ name: Build Android APK
 on:
   push:
     branches: [ main, master ]
-  workflow_dispatch: # मैन्युअल रन करने के लिए बटन
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,24 +11,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. रिपॉजिटरी कोड चेकआउट करें
+      # 1. रिपॉजिटरी कोड चेकआउट
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Java 17 सेटअप करें (Gradle के लिए आवश्यक)
-      - name: Setup Java 17
+      # 2. Java 21 सेटअप
+      - name: Setup Java 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
 
-      # 3. Node.js वातावरण तैयार करें
-      - name: Setup Node.js
+      # 3. Node.js 22 सेटअप (एरर फिक्स)
+      - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
-      # 4. वेब फाइलों को पैकेज करें और Capacitor इंजन सेटअप करें
+      # 4. वेब फाइलों को पैकेज करें और Android प्रोजेक्ट बनाएं
       - name: Prepare Android Project
         run: |
           mkdir -p www
@@ -38,7 +38,6 @@ jobs:
           npm init -y
           npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest
           
-          # Capacitor कॉन्फ़िगरेशन बनाएं
           cat << 'EOF' > capacitor.config.json
           {
             "appId": "com.mandibhav.app",
@@ -52,26 +51,24 @@ jobs:
           }
           EOF
 
-          # Android प्लेटफॉर्म जोड़ें
           npx cap add android
 
-      # 5. Gradle को रन करने की परमिशन दें
+      # 5. Gradle को परमिशन दें
       - name: Grant Gradle Permissions
         run: |
           cd android
           chmod +x gradlew
 
-      # 6. Android Debug APK बनाएं
+      # 6. Android APK बनाएं
       - name: Build APK with Gradle
         run: |
           cd android
           ./gradlew assembleDebug --no-daemon
 
-      # 7. तैयार APK को डाउनलोड के लिए सेव करें
+      # 7. तैयार APK को डाउनलोड के लिए उपलब्ध कराएं
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Mandi-Bhav-Android-App
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
-          
