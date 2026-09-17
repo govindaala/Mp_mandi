@@ -15,7 +15,7 @@
 </head>
 <body class="bg-gray-100 text-gray-900 pb-24 select-none font-sans">
 
-  <!-- Header -->
+  <!-- Header Sticky -->
   <header class="bg-emerald-800 text-white sticky top-0 z-50 shadow-md">
     <div class="px-4 py-3 flex justify-between items-center">
       <div class="flex items-center gap-2">
@@ -62,7 +62,7 @@
     <!-- Mandi Chips -->
     <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar text-xs" id="mandiChips"></div>
 
-    <!-- Rate Stream -->
+    <!-- Rate Cards Stream -->
     <div id="ratesContainer" class="space-y-3">
       <div class="text-center py-10 text-gray-400 text-xs">भाव लोड हो रहे हैं...</div>
     </div>
@@ -88,7 +88,7 @@
     </div>
 
     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-2">
-      <h3 class="text-xs font-bold text-gray-900">📈 मूल्य ट्रेंड</h3>
+      <h3 class="text-xs font-bold text-gray-900">📈 मूल्य ट्रेंड चार्ट</h3>
       <div class="h-56 relative w-full">
         <canvas id="cropProfileCanvas"></canvas>
       </div>
@@ -180,27 +180,39 @@
   <!-- ================= 6. PUBLISHING / ENTRY SCREEN ================= -->
   <section id="view-entry" class="page-view p-3 space-y-3 hidden">
     
-    <!-- User Status Banner (Login Display) -->
-    <div id="publisherStatusCard" class="bg-white p-3 rounded-xl shadow-sm border flex justify-between items-center text-xs">
-      <div>
-        <span class="text-gray-400 block text-[10px]">सक्रिय प्रकाशक (Logged In)</span>
-        <strong id="pubNameDisplay" class="text-gray-900 text-sm">अतिथि</strong> 
-        <span id="pubRoleDisplay" class="bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded text-[10px]">मंडी कर्मी</span>
+    <!-- User Status Banner (Login Display + Logout + Verification Warning) -->
+    <div id="publisherStatusCard" class="bg-white p-3.5 rounded-xl shadow-sm border space-y-2">
+      <div class="flex justify-between items-start">
+        <div>
+          <span class="text-gray-400 block text-[10px]">सक्रिय उपयोगकर्ता (Logged In)</span>
+          <div class="flex items-center gap-1.5 mt-0.5">
+            <strong id="pubNameDisplay" class="text-gray-900 text-sm font-bold">अतिथि</strong>
+            <span id="pubRoleDisplay" class="bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded text-[10px]">लॉगिन करें</span>
+          </div>
+          <!-- Verification Status Pill -->
+          <div id="pubVerifyBadge" class="mt-1"></div>
+        </div>
+
+        <div class="flex items-center gap-1.5">
+          <button onclick="openAuthModal('login')" class="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100">
+            बदलें
+          </button>
+          <button onclick="logoutPublisher()" class="bg-red-50 text-red-600 border border-red-200 px-2.5 py-1.5 rounded-lg text-xs font-bold hover:bg-red-100">
+            लॉगआउट
+          </button>
+        </div>
       </div>
-      <button onclick="openLoginModal()" class="text-emerald-800 font-bold hover:underline">
-        बदलें / लॉगिन
-      </button>
     </div>
 
     <!-- Smart WhatsApp Box -->
     <div class="bg-gradient-to-r from-emerald-50 to-teal-50 p-4 rounded-xl border border-emerald-300 shadow-sm space-y-2">
       <div class="flex items-center justify-between">
         <span class="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
-          <span class="text-base">⚡</span> व्हाट्सएप से डायरेक्ट लाइव (1-क्लिक)
+          <span class="text-base">⚡</span> व्हाट्सएप से सीधे लाइव (1-क्लिक)
         </span>
         <span class="text-[9px] bg-emerald-700 text-white font-bold px-2 py-0.5 rounded-full">ऑटो-पब्लिश</span>
       </div>
-      <p class="text-[10px] text-gray-600">मैसेज पेस्ट करते ही सभी भाव तुरंत 1 सेकंड में ऐप पर लाइव हो जाएंगे।</p>
+      <p class="text-[10px] text-gray-600">मैसेज पेस्ट करते ही सभी भाव तुरंत ऐप पर लाइव हो जाएंगे।</p>
       
       <textarea id="rawWhatsAppBox" rows="5" placeholder="यहाँ पूरा व्हाट्सएप मैसेज पेस्ट करें..." 
         class="w-full text-xs p-2.5 bg-white border border-gray-300 rounded-lg outline-none font-mono"></textarea>
@@ -304,27 +316,54 @@
     </div>
   </section>
 
-  <!-- ================= PUBLISHER LOGIN MODAL (5 CATEGORIES) ================= -->
-  <div id="publisherLoginModal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
+  <!-- ================= AUTH MODAL: LOGIN / REGISTER (5 CATEGORIES) ================= -->
+  <div id="authModal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm p-5 rounded-2xl shadow-2xl space-y-3">
-      <div class="text-center">
-        <span class="text-3xl">👤</span>
-        <h3 class="text-base font-bold text-gray-900 mt-1">प्रकाशक प्रोफाइल</h3>
-        <p class="text-xs text-gray-500">भाव डालने से पहले अपनी श्रेणी चुनें</p>
+      
+      <!-- Modal Tabs (Login vs Register) -->
+      <div class="flex bg-gray-100 p-1 rounded-xl text-xs font-bold">
+        <button onclick="switchAuthTab('login')" id="tab-auth-login" class="flex-1 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm text-center">
+          लॉगिन करें
+        </button>
+        <button onclick="switchAuthTab('register')" id="tab-auth-register" class="flex-1 py-1.5 rounded-lg text-gray-600 text-center">
+          नया रजिस्ट्रेशन
+        </button>
       </div>
 
-      <form onsubmit="savePublisherSession(event)" class="space-y-2.5 text-xs">
+      <!-- 1. LOGIN FORM -->
+      <form id="form-auth-login" onsubmit="handleUserLogin(event)" class="space-y-3 text-xs">
         <div>
-          <label class="font-semibold text-gray-700">आपका नाम</label>
-          <input type="text" id="loginName" required placeholder="उदा. विशाल पाटीदार" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
+          <label class="font-semibold text-gray-700">पंजीकृत मोबाइल नंबर</label>
+          <input type="tel" id="loginPhoneInput" required placeholder="10 अंकों का मोबाइल नंबर" 
+            class="w-full mt-1 p-2.5 bg-gray-50 border rounded-lg font-mono text-sm" />
+        </div>
+        <div>
+          <label class="font-semibold text-gray-700">4-अंकों का गुप्त पिन (PIN)</label>
+          <input type="password" id="loginPinInput" required maxlength="4" placeholder="••••" 
+            class="w-full mt-1 p-2.5 bg-gray-50 border rounded-lg text-center font-mono text-lg tracking-widest" />
+        </div>
+        <button type="submit" class="w-full bg-emerald-800 text-white font-bold py-2.5 rounded-xl shadow text-sm">
+          लॉगिन करें ➔
+        </button>
+      </form>
+
+      <!-- 2. REGISTER FORM -->
+      <form id="form-auth-register" onsubmit="handleUserRegister(event)" class="space-y-2.5 text-xs hidden">
+        <div>
+          <label class="font-semibold text-gray-700">आपका पूरा नाम</label>
+          <input type="text" id="regName" required placeholder="उदा. विशाल पाटीदार" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
         </div>
         <div>
           <label class="font-semibold text-gray-700">मोबाइल नंबर</label>
-          <input type="tel" id="loginPhone" required placeholder="10 अंकों का मोबाइल नंबर" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
+          <input type="tel" id="regPhone" required placeholder="10 अंकों का नंबर" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg font-mono" />
+        </div>
+        <div>
+          <label class="font-semibold text-gray-700">4-अंकों का नया पिन बनाएं</label>
+          <input type="password" id="regPin" required maxlength="4" placeholder="उदा. 4567" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg text-center font-mono tracking-widest text-base" />
         </div>
         <div>
           <label class="font-bold text-emerald-800">आपकी श्रेणी (Role)</label>
-          <select id="loginRole" required class="w-full mt-1 p-2 bg-emerald-50 border border-emerald-300 rounded-lg font-bold text-emerald-900">
+          <select id="regRole" required class="w-full mt-1 p-2 bg-emerald-50 border border-emerald-300 rounded-lg font-bold text-emerald-900">
             <option value="मंडी कर्मी">🏛️ मंडी कर्मी</option>
             <option value="स्वतंत्र यूट्यूबर">📹 स्वतंत्र यूट्यूबर</option>
             <option value="व्यापारी">🏬 व्यापारी</option>
@@ -332,10 +371,21 @@
             <option value="पत्रकार">📰 पत्रकार</option>
           </select>
         </div>
-        <button type="submit" class="w-full bg-emerald-800 text-white font-bold py-2.5 rounded-xl shadow mt-2">
-          सुरक्षित करें व आगे बढ़ें
+        <div>
+          <label class="font-semibold text-gray-700">मंडी या फर्म का नाम</label>
+          <input type="text" id="regMandi" placeholder="उदा. भवानीमंडी / माँ दुर्गा ट्रेडिंग" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
+        </div>
+        <p class="text-[10px] text-amber-700 bg-amber-50 p-2 rounded border border-amber-200">
+          ⚠️ रजिस्ट्रेशन के बाद आप तुरंत भाव डाल सकेंगे, लेकिन जब तक एडमिन वेरिफाई नहीं करेगा तब तक आपके भाव पर 'अन-वेरिफाइड यूजर' का टैग दिखेगा।
+        </p>
+        <button type="submit" class="w-full bg-emerald-800 text-white font-bold py-2.5 rounded-xl shadow text-sm">
+          रजिस्टर करें व लॉगिन हों ➔
         </button>
       </form>
+
+      <div class="text-center pt-1">
+        <button onclick="closeAuthModal()" class="text-gray-400 hover:text-gray-600 text-xs">रद्द करें (बंद करें)</button>
+      </div>
     </div>
   </div>
 
@@ -417,17 +467,13 @@
     let cropChartInstance = null;
     let activeCropProfileId = null;
 
-    // Current Publisher Session
-    let currentPublisher = JSON.parse(localStorage.getItem("mandi_publisher")) || {
-      name: "विशाल पाटीदार",
-      phone: "8769556177",
-      role: "आढ़तिया"
-    };
+    // Current User Session
+    let currentUser = JSON.parse(localStorage.getItem("mandi_user")) || null;
 
     window.addEventListener("DOMContentLoaded", () => {
       document.getElementById("globalDate").value = new Date().toISOString().split("T")[0];
       updateActiveDateLabel();
-      updatePublisherUI();
+      updateUserUI();
       initApp();
     });
 
@@ -436,34 +482,145 @@
       document.getElementById("activeDateLabel").innerText = d || 'सभी';
     }
 
-    function updatePublisherUI() {
-      document.getElementById("pubNameDisplay").innerText = currentPublisher.name;
-      document.getElementById("pubRoleDisplay").innerText = currentPublisher.role;
+    function updateUserUI() {
+      const nameEl = document.getElementById("pubNameDisplay");
+      const roleEl = document.getElementById("pubRoleDisplay");
+      const badgeEl = document.getElementById("pubVerifyBadge");
+
+      if (currentUser) {
+        nameEl.innerText = currentUser.name;
+        roleEl.innerText = currentUser.role;
+        if (currentUser.is_verified == 1) {
+          badgeEl.innerHTML = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">✓ वेरिफाइड यूजर</span>`;
+        } else {
+          badgeEl.innerHTML = `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2 py-0.5 rounded text-[10px]">⚠️ अन-वेरिफाइड यूजर (Admin सत्यापन लंबित)</span>`;
+        }
+      } else {
+        nameEl.innerText = "अतिथि";
+        roleEl.innerText = "लॉगिन करें";
+        badgeEl.innerHTML = `<span class="text-[10px] text-gray-400">भाव डालने के लिए लॉगिन / रजिस्टर करें</span>`;
+      }
     }
 
-    function openLoginModal() {
-      document.getElementById("loginName").value = currentPublisher.name;
-      document.getElementById("loginPhone").value = currentPublisher.phone;
-      document.getElementById("loginRole").value = currentPublisher.role;
-      document.getElementById("publisherLoginModal").classList.remove("hidden");
+    // ================= AUTH MODAL LOGIC =================
+    function openAuthModal(tab = 'login') {
+      document.getElementById("authModal").classList.remove("hidden");
+      switchAuthTab(tab);
     }
 
-    function savePublisherSession(e) {
+    function closeAuthModal() {
+      document.getElementById("authModal").classList.add("hidden");
+    }
+
+    function switchAuthTab(tab) {
+      const isLogin = tab === 'login';
+      document.getElementById("form-auth-login").classList.toggle("hidden", !isLogin);
+      document.getElementById("form-auth-register").classList.toggle("hidden", isLogin);
+
+      document.getElementById("tab-auth-login").className = isLogin 
+        ? "flex-1 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm text-center font-bold" 
+        : "flex-1 py-1.5 rounded-lg text-gray-600 text-center font-medium";
+      document.getElementById("tab-auth-register").className = !isLogin 
+        ? "flex-1 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm text-center font-bold" 
+        : "flex-1 py-1.5 rounded-lg text-gray-600 text-center font-medium";
+    }
+
+    // User Login
+    async function handleUserLogin(e) {
       e.preventDefault();
-      currentPublisher = {
-        name: document.getElementById("loginName").value.trim(),
-        phone: document.getElementById("loginPhone").value.trim(),
-        role: document.getElementById("loginRole").value
-      };
-      localStorage.setItem("mandi_publisher", JSON.stringify(currentPublisher));
-      updatePublisherUI();
-      document.getElementById("publisherLoginModal").classList.add("hidden");
-      alert(`✅ स्वागत है ${currentPublisher.name} जी (${currentPublisher.role})!`);
+      const phone = document.getElementById("loginPhoneInput").value.trim();
+      const pin = document.getElementById("loginPinInput").value.trim();
+
+      const users = await sqlQuery(`SELECT * FROM users WHERE phone = '${phone}' AND pin = '${pin}' LIMIT 1;`);
+      if (users && users.length > 0) {
+        currentUser = users[0];
+        localStorage.setItem("mandi_user", JSON.stringify(currentUser));
+        updateUserUI();
+        closeAuthModal();
+        alert(`✅ स्वागत है ${currentUser.name} जी!`);
+        await loadData();
+      } else {
+        alert("❌ मोबाइल नंबर या पिन गलत है! अगर आपका खाता नहीं है तो 'नया रजिस्ट्रेशन' टैब पर जाएं।");
+      }
     }
 
+    // User Register
+    async function handleUserRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById("regName").value.trim();
+      const phone = document.getElementById("regPhone").value.trim();
+      const pin = document.getElementById("regPin").value.trim();
+      const role = document.getElementById("regRole").value;
+      const mandi = document.getElementById("regMandi").value.trim() || 'मालवा';
+
+      if (phone.length < 10) {
+        alert("कृपया 10 अंकों का सही मोबाइल नंबर डालें!");
+        return;
+      }
+      if (pin.length < 4) {
+        alert("कृपया 4 अंकों का पिन बनाएं!");
+        return;
+      }
+
+      // Check if phone already registered
+      const existing = await sqlQuery(`SELECT id FROM users WHERE phone = '${phone}' LIMIT 1;`);
+      if (existing && existing.length > 0) {
+        alert("⚠️ यह मोबाइल नंबर पहले से पंजीकृत है! कृपया लॉगिन करें।");
+        switchAuthTab('login');
+        document.getElementById("loginPhoneInput").value = phone;
+        return;
+      }
+
+      // Insert new user with is_verified = 0 (Unverified)
+      await sqlQuery(`
+        INSERT INTO users (name, phone, pin, role, mandi_name, is_verified) 
+        VALUES ('${name}', '${phone}', '${pin}', '${role}', '${mandi}', 0);
+      `);
+
+      currentUser = {
+        name: name,
+        phone: phone,
+        pin: pin,
+        role: role,
+        mandi_name: mandi,
+        is_verified: 0
+      };
+      localStorage.setItem("mandi_user", JSON.stringify(currentUser));
+      updateUserUI();
+      closeAuthModal();
+
+      alert(`✅ बधाई! आपका खाता बन चुका है (${role})।\n\n⚠️ सूचना: जब तक एडमिन वेरिफाई नहीं करेगा, आपके भाव पर 'अन-वेरिफाइड यूजर' का टैग दिखेगा।`);
+      await loadData();
+    }
+
+    // User Logout
+    window.logoutPublisher = function() {
+      if (confirm("क्या आप इस प्रोफाइल से लॉगआउट करना चाहते हैं?")) {
+        localStorage.removeItem("mandi_user");
+        currentUser = null;
+        updateUserUI();
+        alert("✅ आप सफलतापूर्वक लॉगआउट हो गए हैं!");
+      }
+    };
+
+    // Initialize App & Ensure Tables
     async function initApp() {
       populateDropdowns();
       renderMandiChips();
+
+      // Ensure users table exists with is_verified column
+      sqlQuery(`
+        CREATE TABLE IF NOT EXISTS users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          phone TEXT UNIQUE NOT NULL,
+          pin TEXT NOT NULL,
+          role TEXT NOT NULL,
+          mandi_name TEXT,
+          is_verified INTEGER DEFAULT 0,
+          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
 
       const mRows = await sqlQuery("SELECT id, name, district, state FROM mandis WHERE is_active = 1 ORDER BY name ASC;");
       if (mRows && mRows.length > 0) mandis = mRows;
@@ -476,14 +633,18 @@
       await loadData();
     }
 
+    // Load Data (Joins users table to get real-time verification status)
     async function loadData() {
       const live = await sqlQuery(`
         SELECT p.*, 
                COALESCE(m.name, 'मंडी') as mandi_name, 
-               COALESCE(c.name_hi, 'फसल') as crop_name 
+               COALESCE(c.name_hi, 'फसल') as crop_name,
+               COALESCE(u.is_verified, 0) as user_verified,
+               COALESCE(u.role, p.user_role) as publisher_role
         FROM price_records p
         LEFT JOIN mandis m ON p.mandi_id = m.id
         LEFT JOIN commodities c ON p.commodity_id = c.id
+        LEFT JOIN users u ON p.user_phone = u.phone
         WHERE p.status = 'approved'
         ORDER BY p.id DESC LIMIT 400;
       `);
@@ -492,6 +653,16 @@
       renderRates();
       renderComparisonResult();
       if (currentView === "view-trend") updateTrendChart();
+
+      // Refresh current user verified status from DB if logged in
+      if (currentUser && currentUser.phone) {
+        const u = await sqlQuery(`SELECT is_verified FROM users WHERE phone = '${currentUser.phone}' LIMIT 1;`);
+        if (u && u.length > 0) {
+          currentUser.is_verified = u[0].is_verified;
+          localStorage.setItem("mandi_user", JSON.stringify(currentUser));
+          updateUserUI();
+        }
+      }
     }
 
     function populateDropdowns() {
@@ -567,7 +738,7 @@
       setDateMode('SELECTED');
     };
 
-    // Render Cards
+    // ================= RENDER RATES WITH UNVERIFIED BADGE =================
     function renderRates() {
       const container = document.getElementById("ratesContainer");
       const search = document.getElementById("globalSearch")?.value.trim().toLowerCase() || "";
@@ -581,7 +752,7 @@
         const matchS = !search || 
           (r.crop_name && r.crop_name.toLowerCase().includes(search)) || 
           (r.mandi_name && r.mandi_name.toLowerCase().includes(search)) || 
-          (r.firm_name && r.firm_name.toLowerCase().includes(search)) ||
+          (r.firm_name && r.firm_name.toLowerCase().includes(search)) || 
           (r.submitted_by && r.submitted_by.toLowerCase().includes(search)) ||
           (r.quality_grade && r.quality_grade.toLowerCase().includes(search));
 
@@ -604,11 +775,14 @@
       container.innerHTML = filtered.map(r => {
         const isMP = (r.source_type === "MP_BOARD" || r.source_type === "MANDI_OPERATOR");
         
+        // Verification badge check: If user_verified == 0 and has a submitted_by
+        const isUnverified = (r.user_verified === 0 || r.user_verified === "0") && r.submitted_by;
+
         return `
-          <div class="bg-white rounded-xl p-3.5 shadow-sm border-l-4 ${isMP ? 'border-emerald-700' : 'border-blue-600'} border-gray-100">
+          <div class="bg-white rounded-xl p-3.5 shadow-sm border-l-4 ${isUnverified ? 'border-amber-500 bg-amber-50/20' : (isMP ? 'border-emerald-700' : 'border-blue-600')} border-gray-100">
             <div class="flex justify-between items-start mb-1.5">
               <div>
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-1.5 flex-wrap">
                   <button onclick="openCropProfile(${r.commodity_id}, '${r.crop_name}')" 
                           class="text-base font-black text-gray-900 hover:text-emerald-700 flex items-center gap-1">
                     <span>${r.crop_name}</span>
@@ -617,6 +791,13 @@
                   <span class="text-[9px] ${isMP ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'} font-bold px-2 py-0.5 rounded-full">
                     ${isMP ? '🏛️ MP बोर्ड' : '🏪 राज. आढ़त'}
                   </span>
+
+                  <!-- Unverified Badge on Rate Card -->
+                  ${isUnverified ? `
+                    <span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1.5 py-0.2 rounded text-[9px] flex items-center gap-0.5">
+                      <span>⚠️</span> अन-वेरिफाइड यूजर
+                    </span>
+                  ` : ''}
                 </div>
 
                 <button onclick="openMandiProfile(${r.mandi_id}, '${r.mandi_name}', '${r.firm_name || ''}', '${r.source_type}')" 
@@ -630,9 +811,9 @@
                 <p class="text-[10px] text-gray-500 mt-0.5">${r.quality_grade || 'सामान्य'}</p>
                 
                 ${r.submitted_by ? `
-                  <p class="text-[9px] text-gray-400 mt-0.5">
-                    रिपोर्टर: <strong class="text-gray-700">${r.submitted_by}</strong> 
-                    ${r.user_role ? `<span class="bg-gray-100 text-gray-700 px-1 py-0.2 rounded">(${r.user_role})</span>` : ''}
+                  <p class="text-[9px] text-gray-500 mt-0.5">
+                    पोस्टकर्ता: <strong class="text-gray-800">${r.submitted_by}</strong> 
+                    ${r.publisher_role ? `<span class="text-gray-500 font-medium">(${r.publisher_role})</span>` : ''}
                   </p>
                 ` : ''}
               </div>
@@ -662,7 +843,7 @@
       }).join("");
     }
 
-    // ================= DIRECT AUTO-PUBLISH (व्हाट्सएप 1-क्लिक) =================
+    // ================= DIRECT AUTO-PUBLISH (WHATSAPP) =================
     function parseWhatsAppMessageText(raw) {
       const dMatch = raw.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
       let pDate = new Date().toISOString().split('T')[0];
@@ -745,8 +926,13 @@
       };
     }
 
-    // सीधे लाइव पब्लिश (बिना किसी अप्रूवल के)
     window.handleAutoPublish = async function() {
+      if (!currentUser) {
+        alert("⚠️ भाव प्रकाशित करने से पहले कृपया लॉगिन या रजिस्ट्रेशन करें!");
+        openAuthModal('login');
+        return;
+      }
+
       const text = document.getElementById("rawWhatsAppBox").value;
       if (!text.trim()) {
         alert("कृपया पहले व्हाट्सएप मैसेज पेस्ट करें!");
@@ -773,11 +959,11 @@
 
           const qualityDesc = it.quality + (parsed.note ? ` (${parsed.note})` : '');
 
-          // सीधे status = 'approved' के साथ डेटाबेस में सेव
+          // Publishes directly with user_phone attached
           await sqlQuery(`
             INSERT INTO price_records 
-            (mandi_id, commodity_id, source_type, firm_name, quality_grade, price_min, price_max, price_modal, price_date, submitted_by, user_role, status)
-            VALUES (${mandiId}, ${cId}, 'RJ_ADATH', '${parsed.firm}', '${qualityDesc}', ${it.min}, ${it.max}, ${it.modal}, '${parsed.date}', '${currentPublisher.name}', '${currentPublisher.role}', 'approved');
+            (mandi_id, commodity_id, source_type, firm_name, quality_grade, price_min, price_max, price_modal, price_date, submitted_by, user_role, user_phone, status)
+            VALUES (${mandiId}, ${cId}, 'RJ_ADATH', '${parsed.firm}', '${qualityDesc}', ${it.min}, ${it.max}, ${it.modal}, '${parsed.date}', '${currentUser.name}', '${currentUser.role}', '${currentUser.phone}', 'approved');
           `);
         }
 
@@ -797,9 +983,15 @@
       }
     };
 
-    // Manual MP Submit (सीधे लाइव)
+    // Manual MP Submit
     async function submitMPBoardRate(e) {
       e.preventDefault();
+      if (!currentUser) {
+        alert("⚠️ भाव प्रकाशित करने से पहले लॉगिन या रजिस्ट्रेशन करें!");
+        openAuthModal('login');
+        return;
+      }
+
       const mId = document.getElementById("mpMandi").value;
       const cId = document.getElementById("mpCrop").value;
       const yard = document.getElementById("mpYard").value || 'मुख्य डाक यार्ड';
@@ -811,8 +1003,8 @@
 
       await sqlQuery(`
         INSERT INTO price_records 
-        (mandi_id, commodity_id, source_type, firm_name, quality_grade, price_min, price_max, price_modal, arrival_quantity, price_date, submitted_by, user_role, status)
-        VALUES (${mId}, ${cId}, 'MP_BOARD', 'कृषि उपज मंडी समिति', '${yard}', ${min}, ${max}, ${modal}, ${bags}, '${dateVal}', '${currentPublisher.name}', '${currentPublisher.role}', 'approved');
+        (mandi_id, commodity_id, source_type, firm_name, quality_grade, price_min, price_max, price_modal, arrival_quantity, price_date, submitted_by, user_role, user_phone, status)
+        VALUES (${mId}, ${cId}, 'MP_BOARD', 'कृषि उपज मंडी समिति', '${yard}', ${min}, ${max}, ${modal}, ${bags}, '${dateVal}', '${currentUser.name}', '${currentUser.role}', '${currentUser.phone}', 'approved');
       `);
 
       alert("🏛️ नीलामी भाव तुरंत लाइव हो गया!");
@@ -820,9 +1012,15 @@
       loadData();
     }
 
-    // Manual RJ Submit (सीधे लाइव)
+    // Manual RJ Submit
     async function submitRJAdathRate(e) {
       e.preventDefault();
+      if (!currentUser) {
+        alert("⚠️ भाव प्रकाशित करने से पहले लॉगिन या रजिस्ट्रेशन करें!");
+        openAuthModal('login');
+        return;
+      }
+
       const mId = document.getElementById("rjMandi").value;
       const cId = document.getElementById("rjCrop").value;
       const firm = document.getElementById("rjFirm").value;
@@ -834,8 +1032,8 @@
 
       await sqlQuery(`
         INSERT INTO price_records 
-        (mandi_id, commodity_id, source_type, firm_name, quality_grade, price_min, price_max, price_modal, price_date, submitted_by, user_role, status)
-        VALUES (${mId}, ${cId}, 'RJ_ADATH', '${firm}', '${q}', ${min}, ${max}, ${modal}, '${dateVal}', '${currentPublisher.name}', '${currentPublisher.role}', 'approved');
+        (mandi_id, commodity_id, source_type, firm_name, quality_grade, price_min, price_max, price_modal, price_date, submitted_by, user_role, user_phone, status)
+        VALUES (${mId}, ${cId}, 'RJ_ADATH', '${firm}', '${q}', ${min}, ${max}, ${modal}, '${dateVal}', '${currentUser.name}', '${currentUser.role}', '${currentUser.phone}', 'approved');
       `);
 
       alert("🏪 आढ़त कोटेशन तुरंत लाइव हो गया!");
