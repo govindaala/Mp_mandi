@@ -38,7 +38,7 @@
     </div>
   </header>
 
-  <!-- ================= 1. HOME SCREEN (मुख्य भाव) ================= -->
+  <!-- ================= 1. HOME SCREEN ================= -->
   <section id="view-home" class="page-view p-3 space-y-3">
     <!-- Date Quick Toggles -->
     <div class="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm text-xs border border-gray-100">
@@ -62,7 +62,7 @@
     <!-- Mandi Chips -->
     <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar text-xs" id="mandiChips"></div>
 
-    <!-- Rate Cards Stream -->
+    <!-- Rate Stream -->
     <div id="ratesContainer" class="space-y-3">
       <div class="text-center py-10 text-gray-400 text-xs">भाव लोड हो रहे हैं...</div>
     </div>
@@ -88,7 +88,7 @@
     </div>
 
     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-2">
-      <h3 class="text-xs font-bold text-gray-900">📈 मूल्य ट्रेंड चार्ट</h3>
+      <h3 class="text-xs font-bold text-gray-900">📈 मूल्य ट्रेंड</h3>
       <div class="h-56 relative w-full">
         <canvas id="cropProfileCanvas"></canvas>
       </div>
@@ -180,17 +180,20 @@
   <!-- ================= 6. PUBLISHING / ENTRY SCREEN ================= -->
   <section id="view-entry" class="page-view p-3 space-y-3 hidden">
     
-    <!-- User Status Banner (Login Display + Logout + Verification Warning) -->
+    <!-- User Status Banner (Login Display + REWARD POINTS & BADGE + Logout) -->
     <div id="publisherStatusCard" class="bg-white p-3.5 rounded-xl shadow-sm border space-y-2">
       <div class="flex justify-between items-start">
         <div>
-          <span class="text-gray-400 block text-[10px]">सक्रिय उपयोगकर्ता (Logged In)</span>
+          <span class="text-gray-400 block text-[10px]">सक्रिय उपयोगकर्ता (Publisher)</span>
           <div class="flex items-center gap-1.5 mt-0.5">
             <strong id="pubNameDisplay" class="text-gray-900 text-sm font-bold">अतिथि</strong>
             <span id="pubRoleDisplay" class="bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded text-[10px]">लॉगिन करें</span>
           </div>
-          <!-- Verification Status Pill -->
-          <div id="pubVerifyBadge" class="mt-1"></div>
+          
+          <!-- Reward & Badge Chips -->
+          <div id="pubRewardStats" class="flex items-center gap-2 mt-1.5">
+            <!-- Dynamically injected -->
+          </div>
         </div>
 
         <div class="flex items-center gap-1.5">
@@ -208,11 +211,11 @@
     <div class="bg-gradient-to-r from-emerald-50 to-teal-50 p-4 rounded-xl border border-emerald-300 shadow-sm space-y-2">
       <div class="flex items-center justify-between">
         <span class="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
-          <span class="text-base">⚡</span> व्हाट्सएप से सीधे लाइव (1-क्लिक)
+          <span class="text-base">⚡</span> व्हाट्सएप से सीधे लाइव (+30 सिक्के)
         </span>
         <span class="text-[9px] bg-emerald-700 text-white font-bold px-2 py-0.5 rounded-full">ऑटो-पब्लिश</span>
       </div>
-      <p class="text-[10px] text-gray-600">मैसेज पेस्ट करते ही सभी भाव तुरंत ऐप पर लाइव हो जाएंगे।</p>
+      <p class="text-[10px] text-gray-600">मैसेज पेस्ट करते ही भाव तुरंत लाइव होंगे व आपके खाते में रिवॉर्ड पॉइंट्स जुड़ेंगे।</p>
       
       <textarea id="rawWhatsAppBox" rows="5" placeholder="यहाँ पूरा व्हाट्सएप मैसेज पेस्ट करें..." 
         class="w-full text-xs p-2.5 bg-white border border-gray-300 rounded-lg outline-none font-mono"></textarea>
@@ -235,7 +238,7 @@
 
     <!-- MP FORM -->
     <div id="panel-mp-board" class="pub-panel bg-white p-4 rounded-xl shadow-sm space-y-3">
-      <h3 class="text-xs font-bold text-gray-900 border-b pb-2">कृषि उपज मंडी समिति — नीलामी पत्रक</h3>
+      <h3 class="text-xs font-bold text-gray-900 border-b pb-2">कृषि उपज मंडी समिति — नीलामी पत्रक (+20 सिक्के)</h3>
       <form onsubmit="submitMPBoardRate(event)" class="space-y-2.5 text-xs">
         <div class="grid grid-cols-2 gap-2">
           <div>
@@ -279,7 +282,7 @@
 
     <!-- RJ FORM -->
     <div id="panel-rj-adath" class="pub-panel bg-white p-4 rounded-xl shadow-sm space-y-3 hidden">
-      <h3 class="text-xs font-bold text-gray-900 border-b pb-2">आढ़त फर्म व गल्ला खरीद कोटेशन</h3>
+      <h3 class="text-xs font-bold text-gray-900 border-b pb-2">आढ़त फर्म व गल्ला खरीद कोटेशन (+20 सिक्के)</h3>
       <form onsubmit="submitRJAdathRate(event)" class="space-y-2.5 text-xs">
         <div class="grid grid-cols-2 gap-2">
           <div>
@@ -316,11 +319,9 @@
     </div>
   </section>
 
-  <!-- ================= AUTH MODAL: LOGIN / REGISTER (5 CATEGORIES) ================= -->
+  <!-- ================= AUTH MODAL ================= -->
   <div id="authModal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-sm p-5 rounded-2xl shadow-2xl space-y-3">
-      
-      <!-- Modal Tabs (Login vs Register) -->
       <div class="flex bg-gray-100 p-1 rounded-xl text-xs font-bold">
         <button onclick="switchAuthTab('login')" id="tab-auth-login" class="flex-1 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm text-center">
           लॉगिन करें
@@ -330,27 +331,25 @@
         </button>
       </div>
 
-      <!-- 1. LOGIN FORM -->
+      <!-- LOGIN -->
       <form id="form-auth-login" onsubmit="handleUserLogin(event)" class="space-y-3 text-xs">
         <div>
           <label class="font-semibold text-gray-700">पंजीकृत मोबाइल नंबर</label>
-          <input type="tel" id="loginPhoneInput" required placeholder="10 अंकों का मोबाइल नंबर" 
-            class="w-full mt-1 p-2.5 bg-gray-50 border rounded-lg font-mono text-sm" />
+          <input type="tel" id="loginPhoneInput" required placeholder="10 अंकों का मोबाइल नंबर" class="w-full mt-1 p-2.5 bg-gray-50 border rounded-lg font-mono text-sm" />
         </div>
         <div>
           <label class="font-semibold text-gray-700">4-अंकों का गुप्त पिन (PIN)</label>
-          <input type="password" id="loginPinInput" required maxlength="4" placeholder="••••" 
-            class="w-full mt-1 p-2.5 bg-gray-50 border rounded-lg text-center font-mono text-lg tracking-widest" />
+          <input type="password" id="loginPinInput" required maxlength="4" placeholder="••••" class="w-full mt-1 p-2.5 bg-gray-50 border rounded-lg text-center font-mono text-lg tracking-widest" />
         </div>
         <button type="submit" class="w-full bg-emerald-800 text-white font-bold py-2.5 rounded-xl shadow text-sm">
           लॉगिन करें ➔
         </button>
       </form>
 
-      <!-- 2. REGISTER FORM -->
+      <!-- REGISTER -->
       <form id="form-auth-register" onsubmit="handleUserRegister(event)" class="space-y-2.5 text-xs hidden">
         <div>
-          <label class="font-semibold text-gray-700">आपका पूरा नाम</label>
+          <label class="font-semibold text-gray-700">पूरा नाम</label>
           <input type="text" id="regName" required placeholder="उदा. विशाल पाटीदार" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
         </div>
         <div>
@@ -358,7 +357,7 @@
           <input type="tel" id="regPhone" required placeholder="10 अंकों का नंबर" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg font-mono" />
         </div>
         <div>
-          <label class="font-semibold text-gray-700">4-अंकों का नया पिन बनाएं</label>
+          <label class="font-semibold text-gray-700">4-अंकों का नया पिन</label>
           <input type="password" id="regPin" required maxlength="4" placeholder="उदा. 4567" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg text-center font-mono tracking-widest text-base" />
         </div>
         <div>
@@ -375,16 +374,16 @@
           <label class="font-semibold text-gray-700">मंडी या फर्म का नाम</label>
           <input type="text" id="regMandi" placeholder="उदा. भवानीमंडी / माँ दुर्गा ट्रेडिंग" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
         </div>
-        <p class="text-[10px] text-amber-700 bg-amber-50 p-2 rounded border border-amber-200">
-          ⚠️ रजिस्ट्रेशन के बाद आप तुरंत भाव डाल सकेंगे, लेकिन जब तक एडमिन वेरिफाई नहीं करेगा तब तक आपके भाव पर 'अन-वेरिफाइड यूजर' का टैग दिखेगा।
+        <p class="text-[10px] text-emerald-800 bg-emerald-50 p-2 rounded border border-emerald-200">
+          🎁 <strong>ज्वाइनिंग रिवॉर्ड:</strong> रजिस्टर करने पर आपको <strong>+50 वेलकम कॉइन्स</strong> तुरंत मिलेंगे!
         </p>
         <button type="submit" class="w-full bg-emerald-800 text-white font-bold py-2.5 rounded-xl shadow text-sm">
-          रजिस्टर करें व लॉगिन हों ➔
+          रजिस्टर करें व 50 सिक्के पाएं ➔
         </button>
       </form>
 
       <div class="text-center pt-1">
-        <button onclick="closeAuthModal()" class="text-gray-400 hover:text-gray-600 text-xs">रद्द करें (बंद करें)</button>
+        <button onclick="closeAuthModal()" class="text-gray-400 hover:text-gray-600 text-xs">रद्द करें</button>
       </div>
     </div>
   </div>
@@ -467,7 +466,7 @@
     let cropChartInstance = null;
     let activeCropProfileId = null;
 
-    // Current User Session
+    // Current User Session (Points & Streak Loaded)
     let currentUser = JSON.parse(localStorage.getItem("mandi_user")) || null;
 
     window.addEventListener("DOMContentLoaded", () => {
@@ -475,6 +474,7 @@
       updateActiveDateLabel();
       updateUserUI();
       initApp();
+      checkDailyLoginBonus(); // Login streak bonus check
     });
 
     function updateActiveDateLabel() {
@@ -482,24 +482,105 @@
       document.getElementById("activeDateLabel").innerText = d || 'सभी';
     }
 
+    function calculateBadge(points) {
+      if (points >= 1500) return "💎 मंडी रत्न";
+      if (points >= 500) return "🥇 गोल्ड रिपोर्टर";
+      if (points >= 100) return "🥈 सिल्वर रिपोर्टर";
+      return "🥉 कांस्य सदस्य";
+    }
+
     function updateUserUI() {
       const nameEl = document.getElementById("pubNameDisplay");
       const roleEl = document.getElementById("pubRoleDisplay");
-      const badgeEl = document.getElementById("pubVerifyBadge");
+      const statsEl = document.getElementById("pubRewardStats");
 
       if (currentUser) {
         nameEl.innerText = currentUser.name;
         roleEl.innerText = currentUser.role;
-        if (currentUser.is_verified == 1) {
-          badgeEl.innerHTML = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">✓ वेरिफाइड यूजर</span>`;
-        } else {
-          badgeEl.innerHTML = `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2 py-0.5 rounded text-[10px]">⚠️ अन-वेरिफाइड यूजर (Admin सत्यापन लंबित)</span>`;
-        }
+        const pts = currentUser.reward_points || 0;
+        const streak = currentUser.streak_count || 1;
+        const badge = calculateBadge(pts);
+
+        let verifyHtml = currentUser.is_verified == 1 
+          ? `<span class="bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded text-[10px]">✓ वेरिफाइड</span>`
+          : `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1.5 py-0.5 rounded text-[10px]">⚠️ अन-वेरिफाइड</span>`;
+
+        statsEl.innerHTML = `
+          <span class="bg-amber-100 text-amber-900 font-black px-2 py-0.5 rounded-full text-[10px] flex items-center gap-1 border border-amber-300">
+            <span>🪙</span> <span>${pts} कॉइन्स</span>
+          </span>
+          <span class="bg-red-50 text-red-700 font-bold px-2 py-0.5 rounded-full text-[10px] flex items-center gap-0.5 border border-red-200">
+            <span>🔥</span> <span>${streak} दिन स्ट्रीक</span>
+          </span>
+          <span class="bg-blue-50 text-blue-800 font-bold px-2 py-0.5 rounded text-[10px]">
+            ${badge}
+          </span>
+          ${verifyHtml}
+        `;
       } else {
         nameEl.innerText = "अतिथि";
         roleEl.innerText = "लॉगिन करें";
-        badgeEl.innerHTML = `<span class="text-[10px] text-gray-400">भाव डालने के लिए लॉगिन / रजिस्टर करें</span>`;
+        statsEl.innerHTML = `<span class="text-[10px] text-gray-400">लॉगिन करने पर दैनिक बोनस व कॉइन्स मिलते हैं</span>`;
       }
+    }
+
+    // ================= GAMIFICATION: DAILY LOGIN BONUS =================
+    async function checkDailyLoginBonus() {
+      if (!currentUser || !currentUser.phone) return;
+
+      const today = new Date().toISOString().split("T")[0];
+      const lastLogin = localStorage.getItem(`last_login_${currentUser.phone}`);
+
+      if (lastLogin !== today) {
+        // Daily login award: +5 points
+        currentUser.reward_points = (currentUser.reward_points || 0) + 5;
+        currentUser.streak_count = (currentUser.streak_count || 0) + 1;
+
+        // 7-day streak bonus check
+        let extraMsg = "";
+        if (currentUser.streak_count % 7 === 0) {
+          currentUser.reward_points += 100;
+          extraMsg = "\n🔥 बधाई! लगातार 7 दिन पूरे होने पर +100 स्ट्रीक बोनस मिला!";
+        }
+
+        localStorage.setItem(`last_login_${currentUser.phone}`, today);
+        localStorage.setItem("mandi_user", JSON.stringify(currentUser));
+        updateUserUI();
+
+        // Sync to Turso DB
+        await sqlQuery(`
+          UPDATE users 
+          SET reward_points = ${currentUser.reward_points}, 
+              streak_count = ${currentUser.streak_count}, 
+              last_login_date = '${today}' 
+          WHERE phone = '${currentUser.phone}';
+        `);
+
+        alert(`🎉 दैनिक लॉगिन बोनस: +5 कॉइन्स खाते में जुड़े!${extraMsg}`);
+      }
+    }
+
+    // Reward Credit Function (सत्यापित यूजर को हर भाव पोस्टिंग पर रिवॉर्ड)
+    async function awardPoints(points, action) {
+      if (!currentUser || !currentUser.phone) return;
+
+      // अगर यूजर वेरिफाइड नहीं है तो उसे आधा या केवल पेंडिंग कॉइन मिले, वेरिफाइड को पूरा मिले
+      const isVer = (currentUser.is_verified == 1);
+      const earned = isVer ? points : Math.round(points / 2);
+
+      currentUser.reward_points = (currentUser.reward_points || 0) + earned;
+      localStorage.setItem("mandi_user", JSON.stringify(currentUser));
+      updateUserUI();
+
+      await sqlQuery(`
+        UPDATE users SET reward_points = ${currentUser.reward_points} WHERE phone = '${currentUser.phone}';
+      `);
+      await sqlQuery(`
+        INSERT INTO reward_transactions (user_phone, points, action_type, description)
+        VALUES ('${currentUser.phone}', ${earned}, '${action}', 'भाव अपडेट रिवॉर्ड');
+      `);
+
+      return earned;
     }
 
     // ================= AUTH MODAL LOGIC =================
@@ -525,7 +606,6 @@
         : "flex-1 py-1.5 rounded-lg text-gray-600 text-center font-medium";
     }
 
-    // User Login
     async function handleUserLogin(e) {
       e.preventDefault();
       const phone = document.getElementById("loginPhoneInput").value.trim();
@@ -537,14 +617,13 @@
         localStorage.setItem("mandi_user", JSON.stringify(currentUser));
         updateUserUI();
         closeAuthModal();
-        alert(`✅ स्वागत है ${currentUser.name} जी!`);
+        alert(`✅ स्वागत है ${currentUser.name} जी!\n🪙 आपके पास कुल ${currentUser.reward_points || 0} रिवॉर्ड कॉइन्स हैं।`);
         await loadData();
       } else {
-        alert("❌ मोबाइल नंबर या पिन गलत है! अगर आपका खाता नहीं है तो 'नया रजिस्ट्रेशन' टैब पर जाएं।");
+        alert("❌ मोबाइल नंबर या पिन गलत है! अगर खाता नहीं है तो 'नया रजिस्ट्रेशन' करें।");
       }
     }
 
-    // User Register
     async function handleUserRegister(e) {
       e.preventDefault();
       const name = document.getElementById("regName").value.trim();
@@ -553,16 +632,9 @@
       const role = document.getElementById("regRole").value;
       const mandi = document.getElementById("regMandi").value.trim() || 'मालवा';
 
-      if (phone.length < 10) {
-        alert("कृपया 10 अंकों का सही मोबाइल नंबर डालें!");
-        return;
-      }
-      if (pin.length < 4) {
-        alert("कृपया 4 अंकों का पिन बनाएं!");
-        return;
-      }
+      if (phone.length < 10) { alert("कृपया 10 अंकों का सही मोबाइल नंबर डालें!"); return; }
+      if (pin.length < 4) { alert("कृपया 4 अंकों का पिन बनाएं!"); return; }
 
-      // Check if phone already registered
       const existing = await sqlQuery(`SELECT id FROM users WHERE phone = '${phone}' LIMIT 1;`);
       if (existing && existing.length > 0) {
         alert("⚠️ यह मोबाइल नंबर पहले से पंजीकृत है! कृपया लॉगिन करें।");
@@ -571,10 +643,10 @@
         return;
       }
 
-      // Insert new user with is_verified = 0 (Unverified)
+      // 50 Welcome Coins on Registration
       await sqlQuery(`
-        INSERT INTO users (name, phone, pin, role, mandi_name, is_verified) 
-        VALUES ('${name}', '${phone}', '${pin}', '${role}', '${mandi}', 0);
+        INSERT INTO users (name, phone, pin, role, mandi_name, is_verified, reward_points, streak_count) 
+        VALUES ('${name}', '${phone}', '${pin}', '${role}', '${mandi}', 0, 50, 1);
       `);
 
       currentUser = {
@@ -583,17 +655,18 @@
         pin: pin,
         role: role,
         mandi_name: mandi,
-        is_verified: 0
+        is_verified: 0,
+        reward_points: 50,
+        streak_count: 1
       };
       localStorage.setItem("mandi_user", JSON.stringify(currentUser));
       updateUserUI();
       closeAuthModal();
 
-      alert(`✅ बधाई! आपका खाता बन चुका है (${role})।\n\n⚠️ सूचना: जब तक एडमिन वेरिफाई नहीं करेगा, आपके भाव पर 'अन-वेरिफाइड यूजर' का टैग दिखेगा।`);
+      alert(`🎉 बधाई ${name} जी!\nआपको 50 वेलकम कॉइन्स मिले हैं।\n\nएडमिन सत्यापन के बाद आपको प्रति भाव +20 कॉइन्स व स्टार बैज मिलेंगे!`);
       await loadData();
     }
 
-    // User Logout
     window.logoutPublisher = function() {
       if (confirm("क्या आप इस प्रोफाइल से लॉगआउट करना चाहते हैं?")) {
         localStorage.removeItem("mandi_user");
@@ -603,24 +676,10 @@
       }
     };
 
-    // Initialize App & Ensure Tables
+    // ================= INITIALIZE & LOAD DATA =================
     async function initApp() {
       populateDropdowns();
       renderMandiChips();
-
-      // Ensure users table exists with is_verified column
-      sqlQuery(`
-        CREATE TABLE IF NOT EXISTS users (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT NOT NULL,
-          phone TEXT UNIQUE NOT NULL,
-          pin TEXT NOT NULL,
-          role TEXT NOT NULL,
-          mandi_name TEXT,
-          is_verified INTEGER DEFAULT 0,
-          created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        );
-      `);
 
       const mRows = await sqlQuery("SELECT id, name, district, state FROM mandis WHERE is_active = 1 ORDER BY name ASC;");
       if (mRows && mRows.length > 0) mandis = mRows;
@@ -633,14 +692,15 @@
       await loadData();
     }
 
-    // Load Data (Joins users table to get real-time verification status)
     async function loadData() {
+      // Joins users table to fetch is_verified and reward points
       const live = await sqlQuery(`
         SELECT p.*, 
                COALESCE(m.name, 'मंडी') as mandi_name, 
                COALESCE(c.name_hi, 'फसल') as crop_name,
                COALESCE(u.is_verified, 0) as user_verified,
-               COALESCE(u.role, p.user_role) as publisher_role
+               COALESCE(u.role, p.user_role) as publisher_role,
+               COALESCE(u.reward_points, 0) as publisher_points
         FROM price_records p
         LEFT JOIN mandis m ON p.mandi_id = m.id
         LEFT JOIN commodities c ON p.commodity_id = c.id
@@ -654,11 +714,13 @@
       renderComparisonResult();
       if (currentView === "view-trend") updateTrendChart();
 
-      // Refresh current user verified status from DB if logged in
+      // Refresh current user session from DB
       if (currentUser && currentUser.phone) {
-        const u = await sqlQuery(`SELECT is_verified FROM users WHERE phone = '${currentUser.phone}' LIMIT 1;`);
+        const u = await sqlQuery(`SELECT is_verified, reward_points, streak_count FROM users WHERE phone = '${currentUser.phone}' LIMIT 1;`);
         if (u && u.length > 0) {
           currentUser.is_verified = u[0].is_verified;
+          currentUser.reward_points = u[0].reward_points;
+          currentUser.streak_count = u[0].streak_count;
           localStorage.setItem("mandi_user", JSON.stringify(currentUser));
           updateUserUI();
         }
@@ -738,7 +800,7 @@
       setDateMode('SELECTED');
     };
 
-    // ================= RENDER RATES WITH UNVERIFIED BADGE =================
+    // ================= RENDER RATES (WITH REPUTATION BADGES) =================
     function renderRates() {
       const container = document.getElementById("ratesContainer");
       const search = document.getElementById("globalSearch")?.value.trim().toLowerCase() || "";
@@ -774,9 +836,8 @@
 
       container.innerHTML = filtered.map(r => {
         const isMP = (r.source_type === "MP_BOARD" || r.source_type === "MANDI_OPERATOR");
-        
-        // Verification badge check: If user_verified == 0 and has a submitted_by
         const isUnverified = (r.user_verified === 0 || r.user_verified === "0") && r.submitted_by;
+        const userBadge = calculateBadge(r.publisher_points || 0);
 
         return `
           <div class="bg-white rounded-xl p-3.5 shadow-sm border-l-4 ${isUnverified ? 'border-amber-500 bg-amber-50/20' : (isMP ? 'border-emerald-700' : 'border-blue-600')} border-gray-100">
@@ -792,12 +853,16 @@
                     ${isMP ? '🏛️ MP बोर्ड' : '🏪 राज. आढ़त'}
                   </span>
 
-                  <!-- Unverified Badge on Rate Card -->
+                  <!-- Status / Reputation Badges -->
                   ${isUnverified ? `
                     <span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1.5 py-0.2 rounded text-[9px] flex items-center gap-0.5">
-                      <span>⚠️</span> अन-वेरिफाइड यूजर
+                      <span>⚠️</span> अन-वेरिफाइड
                     </span>
-                  ` : ''}
+                  ` : `
+                    <span class="bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold px-1.5 py-0.2 rounded text-[9px]">
+                      ${userBadge}
+                    </span>
+                  `}
                 </div>
 
                 <button onclick="openMandiProfile(${r.mandi_id}, '${r.mandi_name}', '${r.firm_name || ''}', '${r.source_type}')" 
@@ -818,7 +883,7 @@
                 ` : ''}
               </div>
 
-              <span class="text-[10px] ${isMP ? 'bg-gray-100 text-gray-700' : 'bg-blue-50 text-blue-800'} font-semibold px-2 py-0.5 rounded">
+              <span class="text-[10px] ${isMP ? 'bg-gray-100 text-gray-700' : 'bg-blue-50 text-blue-800'} font-semibold px-2 py-0.5 rounded font-mono">
                 ${r.price_date || ''}
               </span>
             </div>
@@ -843,7 +908,7 @@
       }).join("");
     }
 
-    // ================= DIRECT AUTO-PUBLISH (WHATSAPP) =================
+    // ================= WHATSAPP AUTO-PUBLISH + REWARD COINS =================
     function parseWhatsAppMessageText(raw) {
       const dMatch = raw.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
       let pDate = new Date().toISOString().split('T')[0];
@@ -928,7 +993,7 @@
 
     window.handleAutoPublish = async function() {
       if (!currentUser) {
-        alert("⚠️ भाव प्रकाशित करने से पहले कृपया लॉगिन या रजिस्ट्रेशन करें!");
+        alert("⚠️ भाव प्रकाशित करने और कॉइन्स कमाने के लिए कृपया पहले लॉगिन या रजिस्ट्रेशन करें!");
         openAuthModal('login');
         return;
       }
@@ -956,10 +1021,8 @@
         for (const it of parsed.items) {
           let cObj = crops.find(c => c.name_hi === it.crop);
           let cId = cObj ? cObj.id : 1;
-
           const qualityDesc = it.quality + (parsed.note ? ` (${parsed.note})` : '');
 
-          // Publishes directly with user_phone attached
           await sqlQuery(`
             INSERT INTO price_records 
             (mandi_id, commodity_id, source_type, firm_name, quality_grade, price_min, price_max, price_modal, price_date, submitted_by, user_role, user_phone, status)
@@ -967,7 +1030,10 @@
           `);
         }
 
-        alert(`✅ बधाई! सभी ${parsed.items.length} भाव तुरंत लाइव हो गए हैं!`);
+        // Award Bulk WhatsApp Bonus Points
+        const earnedCoins = await awardPoints(30, 'WHATSAPP_BULK_POST');
+
+        alert(`✅ बधाई! सभी ${parsed.items.length} भाव तुरंत लाइव हो गए हैं!\n🪙 आपको +${earnedCoins} रिवॉर्ड कॉइन्स मिले हैं!`);
         document.getElementById("globalDate").value = parsed.date;
         updateActiveDateLabel();
         setDateMode('SELECTED');
@@ -983,7 +1049,7 @@
       }
     };
 
-    // Manual MP Submit
+    // Manual MP Submit (+20 Points)
     async function submitMPBoardRate(e) {
       e.preventDefault();
       if (!currentUser) {
@@ -1007,12 +1073,13 @@
         VALUES (${mId}, ${cId}, 'MP_BOARD', 'कृषि उपज मंडी समिति', '${yard}', ${min}, ${max}, ${modal}, ${bags}, '${dateVal}', '${currentUser.name}', '${currentUser.role}', '${currentUser.phone}', 'approved');
       `);
 
-      alert("🏛️ नीलामी भाव तुरंत लाइव हो गया!");
+      const earned = await awardPoints(20, 'MANUAL_RATE_POST');
+      alert(`🏛️ नीलामी भाव लाइव हुआ!\n🪙 +${earned} रिवॉर्ड कॉइन्स खाते में जुड़े!`);
       switchView("view-home");
       loadData();
     }
 
-    // Manual RJ Submit
+    // Manual RJ Submit (+20 Points)
     async function submitRJAdathRate(e) {
       e.preventDefault();
       if (!currentUser) {
@@ -1036,12 +1103,13 @@
         VALUES (${mId}, ${cId}, 'RJ_ADATH', '${firm}', '${q}', ${min}, ${max}, ${modal}, '${dateVal}', '${currentUser.name}', '${currentUser.role}', '${currentUser.phone}', 'approved');
       `);
 
-      alert("🏪 आढ़त कोटेशन तुरंत लाइव हो गया!");
+      const earned = await awardPoints(20, 'MANUAL_RATE_POST');
+      alert(`🏪 आढ़त कोटेशन लाइव हुआ!\n🪙 +${earned} रिवॉर्ड कॉइन्स खाते में जुड़े!`);
       switchView("view-home");
       loadData();
     }
 
-    // Crop / Mandi Navigation
+    // Navigation & Profiles
     window.openCropProfile = async function(cropId, cropName) {
       activeCropProfileId = cropId;
       document.getElementById("cropProfileTitle").innerText = cropName;
@@ -1095,7 +1163,7 @@
           data: {
             labels: dataPoints.map(d => String(d.price_date).slice(-5)),
             datasets: [{
-              label: "औसत मॉडल भाव (₹)",
+              label: "मॉडल भाव (₹)",
               data: dataPoints.map(d => d.price_modal),
               borderColor: "#047857",
               backgroundColor: "rgba(4, 120, 87, 0.12)",
