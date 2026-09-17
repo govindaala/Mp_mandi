@@ -15,14 +15,14 @@
 </head>
 <body class="bg-gray-100 text-gray-900 pb-24 select-none font-sans">
 
-  <!-- Header Sticky -->
+  <!-- Header -->
   <header class="bg-emerald-800 text-white sticky top-0 z-50 shadow-md">
     <div class="px-4 py-3 flex justify-between items-center">
       <div class="flex items-center gap-2">
         <button id="btnBack" onclick="goBackHome()" class="hidden text-2xl font-bold pr-1 text-emerald-200">←</button>
         <div>
           <h1 id="topTitle" class="text-base font-bold leading-tight">🌾 डिजिटल कृषि मंडी</h1>
-          <p id="topSub" class="text-[10px] text-emerald-200">लाइव मंडी नीलामी व आढ़त भाव</p>
+          <p id="topSub" class="text-[10px] text-emerald-200">MP व राजस्थान अधिकृत मंडी नेटवर्क</p>
         </div>
       </div>
       <input type="date" id="globalDate" onchange="onDateChanged()" class="bg-emerald-900 text-white text-xs px-2 py-1 rounded border border-emerald-700 outline-none" />
@@ -40,7 +40,7 @@
 
   <!-- ================= 1. HOME SCREEN ================= -->
   <section id="view-home" class="page-view p-3 space-y-3">
-    <!-- Date Quick Toggles -->
+    <!-- Date Toggles -->
     <div class="flex items-center justify-between bg-white p-2 rounded-xl shadow-sm text-xs border border-gray-100">
       <div class="flex items-center gap-1.5">
         <span class="text-gray-500 font-medium">तारीख:</span>
@@ -78,20 +78,9 @@
       </div>
       <span class="text-3xl">🌱</span>
     </div>
-
     <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-2.5">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="text-xs font-bold text-gray-900">📍 विभिन्न मंडियों के लाइव भाव</h3>
-        <span id="cropMandiCount" class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">0 मंडियां</span>
-      </div>
+      <h3 class="text-xs font-bold text-gray-900">📍 विभिन्न मंडियों के लाइव भाव</h3>
       <div id="cropNearbyMandisList" class="space-y-2"></div>
-    </div>
-
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-2">
-      <h3 class="text-xs font-bold text-gray-900">📈 मूल्य ट्रेंड</h3>
-      <div class="h-56 relative w-full">
-        <canvas id="cropProfileCanvas"></canvas>
-      </div>
     </div>
   </section>
 
@@ -144,187 +133,133 @@
           <select id="trendCrop" onchange="updateTrendChart()" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg"></select>
         </div>
       </div>
-      <div class="flex gap-2 justify-center pt-1 text-xs">
-        <button onclick="setTrendDays(7)" id="btn-t7" class="trend-tbtn bg-gray-100 text-gray-700 px-3 py-1 rounded font-medium">7 दिन</button>
-        <button onclick="setTrendDays(30)" id="btn-t30" class="trend-tbtn bg-gray-100 text-gray-700 px-3 py-1 rounded font-medium">30 दिन</button>
-        <button onclick="setTrendDays(90)" id="btn-t90" class="trend-tbtn bg-emerald-700 text-white px-3 py-1 rounded font-bold">3 माह</button>
-      </div>
       <div class="h-60 relative w-full pt-1">
         <canvas id="trendChartCanvas"></canvas>
       </div>
     </div>
-
-    <!-- History Table -->
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-2">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="text-xs font-bold text-gray-900">📋 तारीखवार भाव इतिहास</h3>
-        <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded" id="trendHistoryBadge">0 दिन</span>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-[11px] text-left">
-          <thead class="bg-gray-50 text-gray-600">
-            <tr>
-              <th class="p-2">तारीख</th>
-              <th class="p-2">न्यूनतम</th>
-              <th class="p-2">मॉडल</th>
-              <th class="p-2">अधिकतम</th>
-              <th class="p-2">बदलाव</th>
-            </tr>
-          </thead>
-          <tbody id="trendTableBody" class="divide-y divide-gray-100"></tbody>
-        </table>
-      </div>
-    </div>
   </section>
 
-  <!-- ================= 6. PUBLISHING / ENTRY SCREEN ================= -->
+  <!-- ================= 6. PUBLISHING / ENTRY SCREEN (AUTH PROTECTED) ================= -->
   <section id="view-entry" class="page-view p-3 space-y-3 hidden">
     
-    <!-- User Status Banner (Login Display + REWARD POINTS & BADGE + Logout) -->
-    <div id="publisherStatusCard" class="bg-white p-3.5 rounded-xl shadow-sm border space-y-2">
-      <div class="flex justify-between items-start">
-        <div>
-          <span class="text-gray-400 block text-[10px]">सक्रिय उपयोगकर्ता (Publisher)</span>
-          <div class="flex items-center gap-1.5 mt-0.5">
-            <strong id="pubNameDisplay" class="text-gray-900 text-sm font-bold">अतिथि</strong>
-            <span id="pubRoleDisplay" class="bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded text-[10px]">लॉगिन करें</span>
-          </div>
-          
-          <!-- Reward & Badge Chips -->
-          <div id="pubRewardStats" class="flex items-center gap-2 mt-1.5">
-            <!-- Dynamically injected -->
-          </div>
-        </div>
+    <!-- 1. LOCKED STATE (जब कोई लॉगिन नहीं है) -->
+    <div id="entryAuthLock" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 text-center space-y-4">
+      <div class="w-16 h-16 bg-emerald-50 text-emerald-800 rounded-full flex items-center justify-center mx-auto text-3xl">
+        🔒
+      </div>
+      <div>
+        <h3 class="text-base font-black text-gray-900">भाव प्रकाशन हेतु लॉगिन अनिवार्य है</h3>
+        <p class="text-xs text-gray-500 mt-1 max-w-xs mx-auto leading-relaxed">
+          प्रत्येक मंडी के लिए हमारे अधिकृत प्रतिनिधि (मंडी कर्मी, स्वतंत्र यूट्यूबर, व्यापारी, आढ़तिया या पत्रकार) ही भाव प्रकाशित कर सकते हैं।
+        </p>
+      </div>
+      <div class="flex flex-col gap-2 max-w-xs mx-auto pt-2">
+        <button onclick="openAuthModal('login')" class="w-full bg-emerald-800 hover:bg-emerald-900 text-white font-bold py-2.5 rounded-xl shadow text-xs">
+          🔑 अधिकृत रिपोर्टर लॉगिन करें
+        </button>
+        <button onclick="openAuthModal('register')" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold py-2.5 rounded-xl text-xs">
+          📝 नया रिपोर्टर रजिस्ट्रेशन (मंडी अनुसार)
+        </button>
+      </div>
+    </div>
 
-        <div class="flex items-center gap-1.5">
-          <button onclick="openAuthModal('login')" class="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-100">
-            बदलें
-          </button>
-          <button onclick="logoutPublisher()" class="bg-red-50 text-red-600 border border-red-200 px-2.5 py-1.5 rounded-lg text-xs font-bold hover:bg-red-100">
+    <!-- 2. UNLOCKED STATE (केवल लॉगिन होने पर दिखेगा) -->
+    <div id="entryMainContent" class="space-y-3 hidden">
+      
+      <!-- Territory Lock Banner -->
+      <div class="bg-white p-3.5 rounded-xl shadow-sm border space-y-2 border-emerald-200">
+        <div class="flex justify-between items-start">
+          <div>
+            <div class="flex items-center gap-1.5">
+              <strong id="loggedNameDisplay" class="text-sm font-black text-gray-900">गोविंद पाटीदार</strong>
+              <span id="loggedRoleDisplay" class="bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.2 rounded text-[10px]">यूट्यूबर</span>
+            </div>
+            <p class="text-xs font-bold text-emerald-800 mt-1 flex items-center gap-1">
+              <span>📍 अधिकृत मंडी:</span> 
+              <span id="loggedMandiDisplay" class="underline">शामगढ़ (मंदसौर, MP)</span>
+            </p>
+            <p class="text-[11px] text-gray-500 mt-0.5">
+              सेक्शन: <strong id="loggedSectionDisplay" class="text-gray-800">लहसुन विशेष</strong>
+            </p>
+            <div id="loggedVerifyBadge" class="mt-1"></div>
+          </div>
+
+          <button onclick="logoutPublisher()" class="bg-red-50 text-red-600 border border-red-200 px-2.5 py-1 rounded-lg text-xs font-bold hover:bg-red-100">
             लॉगआउट
           </button>
         </div>
       </div>
-    </div>
 
-    <!-- Smart WhatsApp Box -->
-    <div class="bg-gradient-to-r from-emerald-50 to-teal-50 p-4 rounded-xl border border-emerald-300 shadow-sm space-y-2">
-      <div class="flex items-center justify-between">
-        <span class="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
-          <span class="text-base">⚡</span> व्हाट्सएप से सीधे लाइव (+30 सिक्के)
-        </span>
-        <span class="text-[9px] bg-emerald-700 text-white font-bold px-2 py-0.5 rounded-full">ऑटो-पब्लिश</span>
-      </div>
-      <p class="text-[10px] text-gray-600">मैसेज पेस्ट करते ही भाव तुरंत लाइव होंगे व आपके खाते में रिवॉर्ड पॉइंट्स जुड़ेंगे।</p>
-      
-      <textarea id="rawWhatsAppBox" rows="5" placeholder="यहाँ पूरा व्हाट्सएप मैसेज पेस्ट करें..." 
-        class="w-full text-xs p-2.5 bg-white border border-gray-300 rounded-lg outline-none font-mono"></textarea>
-      
-      <div class="flex gap-2">
-        <button onclick="handleAutoPublish()" id="btnAutoPublish" class="flex-1 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold py-2.5 rounded-lg shadow transition">
-          🚀 सीधे लाइव प्रकाशित करें
-        </button>
-        <button onclick="document.getElementById('rawWhatsAppBox').value=''" class="bg-gray-200 text-gray-700 text-xs px-3 py-2 rounded-lg font-medium">
-          साफ
-        </button>
-      </div>
-    </div>
-
-    <!-- Manual Entry Tabs -->
-    <div class="grid grid-cols-2 gap-1 bg-gray-200 p-1 rounded-xl text-xs font-bold text-gray-600">
-      <button onclick="switchPublishPanel('mp')" id="tab-pnl-mp" class="py-2 rounded-lg bg-emerald-800 text-white shadow-sm text-center">🏛️ MP मंडी बोर्ड</button>
-      <button onclick="switchPublishPanel('rj')" id="tab-pnl-rj" class="py-2 rounded-lg text-gray-700 text-center">🏪 राज. आढ़तिया</button>
-    </div>
-
-    <!-- MP FORM -->
-    <div id="panel-mp-board" class="pub-panel bg-white p-4 rounded-xl shadow-sm space-y-3">
-      <h3 class="text-xs font-bold text-gray-900 border-b pb-2">कृषि उपज मंडी समिति — नीलामी पत्रक (+20 सिक्के)</h3>
-      <form onsubmit="submitMPBoardRate(event)" class="space-y-2.5 text-xs">
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="font-semibold text-gray-600">मंडी समिति</label>
-            <select id="mpMandi" required class="w-full mt-1 p-2 bg-gray-50 border rounded-lg font-medium"></select>
-          </div>
-          <div>
-            <label class="font-semibold text-gray-600">फसल</label>
-            <select id="mpCrop" required class="w-full mt-1 p-2 bg-gray-50 border rounded-lg font-medium"></select>
-          </div>
+      <!-- WhatsApp Bulk Publish (Locked to User's Mandi) -->
+      <div class="bg-gradient-to-r from-emerald-50 to-teal-50 p-4 rounded-xl border border-emerald-300 shadow-sm space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+            <span class="text-base">⚡</span> व्हाट्सएप से अपनी मंडी के भाव डालें
+          </span>
+          <span class="text-[9px] bg-emerald-700 text-white font-bold px-2 py-0.5 rounded-full">1-क्लिक</span>
         </div>
-        <div class="grid grid-cols-3 gap-2 bg-emerald-50/50 p-2 rounded-lg border border-emerald-100">
-          <div>
-            <label class="font-semibold text-gray-700 block">न्यूनतम (₹)</label>
-            <input type="number" id="mpMin" required placeholder="4200" class="w-full mt-1 p-1.5 bg-white border rounded text-center font-bold" />
-          </div>
-          <div>
-            <label class="font-bold text-emerald-800 block">मॉडल (₹)</label>
-            <input type="number" id="mpModal" required placeholder="4650" class="w-full mt-1 p-1.5 bg-white border border-emerald-400 rounded text-center font-extrabold text-emerald-700" />
-          </div>
-          <div>
-            <label class="font-semibold text-gray-700 block">अधिकतम (₹)</label>
-            <input type="number" id="mpMax" required placeholder="4850" class="w-full mt-1 p-1.5 bg-white border rounded text-center font-bold" />
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="font-semibold text-gray-600">बोरी आवक</label>
-            <input type="number" id="mpArrivalBags" placeholder="उदा. 850" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
-          </div>
-          <div>
-            <label class="font-semibold text-gray-600">डाक / शेड</label>
-            <input type="text" id="mpYard" placeholder="उदा. प्रथम डाक शेड नं 2" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
-          </div>
-        </div>
-        <button type="submit" class="w-full bg-emerald-800 text-white font-bold py-2.5 rounded-lg shadow mt-1">
-          ✓ सीधे लाइव प्रकाशित करें
-        </button>
-      </form>
-    </div>
-
-    <!-- RJ FORM -->
-    <div id="panel-rj-adath" class="pub-panel bg-white p-4 rounded-xl shadow-sm space-y-3 hidden">
-      <h3 class="text-xs font-bold text-gray-900 border-b pb-2">आढ़त फर्म व गल्ला खरीद कोटेशन (+20 सिक्के)</h3>
-      <form onsubmit="submitRJAdathRate(event)" class="space-y-2.5 text-xs">
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="font-semibold text-gray-600">मंडी</label>
-            <select id="rjMandi" required class="w-full mt-1 p-2 bg-gray-50 border rounded-lg font-medium"></select>
-          </div>
-          <div>
-            <label class="font-semibold text-gray-600">फसल</label>
-            <select id="rjCrop" required class="w-full mt-1 p-2 bg-gray-50 border rounded-lg font-medium"></select>
-          </div>
-        </div>
+        <textarea id="rawWhatsAppBox" rows="5" placeholder="यहाँ व्हाट्सएप भाव सूची पेस्ट करें (उदा. लहसुन 8000 से 18000...)" 
+          class="w-full text-xs p-2.5 bg-white border border-gray-300 rounded-lg outline-none font-mono"></textarea>
+        
+        <!-- Video URL Input for YouTubers / Reporters -->
         <div>
-          <label class="font-semibold text-gray-600">फर्म का नाम</label>
-          <input type="text" id="rjFirm" required placeholder="उदा. माँ दुर्गा ट्रेडिंग कम्पनी" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
+          <label class="text-[11px] font-bold text-gray-700 block">📹 आज की नीलामी का YouTube वीडियो लिंक (वैकल्पिक):</label>
+          <input type="url" id="reportVideoUrl" placeholder="https://youtube.com/watch?v=..." 
+            class="w-full mt-1 p-2 bg-white border border-gray-300 rounded-lg text-xs" />
         </div>
-        <div>
-          <label class="font-semibold text-gray-600">क्वालिटी / मानक</label>
-          <input type="text" id="rjQuality" placeholder="उदा. बोल्ड क्लीन, नमी 6%" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
+
+        <div class="flex gap-2 pt-1">
+          <button onclick="handleAutoPublish()" id="btnAutoPublish" class="flex-1 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold py-2.5 rounded-lg shadow transition">
+            🚀 सीधे लाइव प्रकाशित करें
+          </button>
+          <button onclick="document.getElementById('rawWhatsAppBox').value=''" class="bg-gray-200 text-gray-700 text-xs px-3 py-2 rounded-lg font-medium">
+            साफ
+          </button>
         </div>
-        <div class="grid grid-cols-2 gap-2 bg-blue-50/40 p-2 rounded-lg border border-blue-100">
-          <div>
-            <label class="font-semibold text-blue-900 block">न्यूनतम खरीद (₹)</label>
-            <input type="number" id="rjMin" required placeholder="4700" class="w-full mt-1 p-1.5 bg-white border rounded text-center font-bold" />
+      </div>
+
+      <!-- Manual Single Entry (Mandi is automatically locked) -->
+      <div class="bg-white p-4 rounded-xl shadow-sm space-y-3 border">
+        <h3 class="text-xs font-bold text-gray-900 border-b pb-2">एकल फसल भाव प्रविष्टि</h3>
+        <form onsubmit="submitManualRate(event)" class="space-y-2.5 text-xs">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="font-semibold text-gray-600">फसल चुनें</label>
+              <select id="singleCropSelect" required class="w-full mt-1 p-2 bg-gray-50 border rounded-lg font-medium"></select>
+            </div>
+            <div>
+              <label class="font-semibold text-gray-600">क्वालिटी / मानक</label>
+              <input type="text" id="singleQuality" placeholder="उदा. बोल्ड क्लीन, ऊटी लहसुन" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
+            </div>
           </div>
-          <div>
-            <label class="font-semibold text-blue-900 block">उच्चतम खरीद (₹)</label>
-            <input type="number" id="rjMax" required placeholder="4950" class="w-full mt-1 p-1.5 bg-white border rounded text-center font-bold" />
+          <div class="grid grid-cols-3 gap-2 bg-emerald-50/50 p-2 rounded-lg border border-emerald-100">
+            <div>
+              <label class="font-semibold text-gray-700 block">न्यूनतम (₹)</label>
+              <input type="number" id="singleMin" required placeholder="4200" class="w-full mt-1 p-1.5 bg-white border rounded text-center font-bold" />
+            </div>
+            <div>
+              <label class="font-bold text-emerald-800 block">मॉडल (₹)</label>
+              <input type="number" id="singleModal" required placeholder="4650" class="w-full mt-1 p-1.5 bg-white border border-emerald-400 rounded text-center font-extrabold text-emerald-700" />
+            </div>
+            <div>
+              <label class="font-semibold text-gray-700 block">अधिकतम (₹)</label>
+              <input type="number" id="singleMax" required placeholder="4850" class="w-full mt-1 p-1.5 bg-white border rounded text-center font-bold" />
+            </div>
           </div>
-        </div>
-        <button type="submit" class="w-full bg-blue-800 text-white font-bold py-2.5 rounded-lg shadow mt-1">
-          ✓ सीधे लाइव प्रकाशित करें
-        </button>
-      </form>
+          <button type="submit" class="w-full bg-emerald-800 text-white font-bold py-2.5 rounded-lg shadow mt-1">
+            ✓ भाव लाइव प्रकाशित करें
+          </button>
+        </form>
+      </div>
     </div>
   </section>
 
-  <!-- ================= AUTH MODAL ================= -->
+  <!-- ================= AUTH MODAL: REGISTRATION WITH STATE -> DISTRICT -> MANDI ================= -->
   <div id="authModal" class="fixed inset-0 bg-black/70 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm p-5 rounded-2xl shadow-2xl space-y-3">
+    <div class="bg-white w-full max-w-sm p-5 rounded-2xl shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
       <div class="flex bg-gray-100 p-1 rounded-xl text-xs font-bold">
         <button onclick="switchAuthTab('login')" id="tab-auth-login" class="flex-1 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm text-center">
-          लॉगिन करें
+          लॉगिन
         </button>
         <button onclick="switchAuthTab('register')" id="tab-auth-register" class="flex-1 py-1.5 rounded-lg text-gray-600 text-center">
           नया रजिस्ट्रेशन
@@ -335,10 +270,10 @@
       <form id="form-auth-login" onsubmit="handleUserLogin(event)" class="space-y-3 text-xs">
         <div>
           <label class="font-semibold text-gray-700">पंजीकृत मोबाइल नंबर</label>
-          <input type="tel" id="loginPhoneInput" required placeholder="10 अंकों का मोबाइल नंबर" class="w-full mt-1 p-2.5 bg-gray-50 border rounded-lg font-mono text-sm" />
+          <input type="tel" id="loginPhoneInput" required placeholder="10 अंकों का नंबर" class="w-full mt-1 p-2.5 bg-gray-50 border rounded-lg font-mono text-sm" />
         </div>
         <div>
-          <label class="font-semibold text-gray-700">4-अंकों का गुप्त पिन (PIN)</label>
+          <label class="font-semibold text-gray-700">4-अंकों का गुप्त पिन</label>
           <input type="password" id="loginPinInput" required maxlength="4" placeholder="••••" class="w-full mt-1 p-2.5 bg-gray-50 border rounded-lg text-center font-mono text-lg tracking-widest" />
         </div>
         <button type="submit" class="w-full bg-emerald-800 text-white font-bold py-2.5 rounded-xl shadow text-sm">
@@ -346,39 +281,71 @@
         </button>
       </form>
 
-      <!-- REGISTER -->
+      <!-- REGISTER WITH STATE -> DISTRICT -> MANDI CASCADING -->
       <form id="form-auth-register" onsubmit="handleUserRegister(event)" class="space-y-2.5 text-xs hidden">
         <div>
-          <label class="font-semibold text-gray-700">पूरा नाम</label>
-          <input type="text" id="regName" required placeholder="उदा. विशाल पाटीदार" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
+          <label class="font-semibold text-gray-700">आपका पूरा नाम</label>
+          <input type="text" id="regName" required placeholder="उदा. गोविंद पाटीदार" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-semibold text-gray-700">मोबाइल नंबर</label>
+            <input type="tel" id="regPhone" required placeholder="10 अंक" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg font-mono" />
+          </div>
+          <div>
+            <label class="font-semibold text-gray-700">4-अंकों का पिन</label>
+            <input type="password" id="regPin" required maxlength="4" placeholder="उदा. 1234" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg text-center font-mono" />
+          </div>
         </div>
         <div>
-          <label class="font-semibold text-gray-700">मोबाइल नंबर</label>
-          <input type="tel" id="regPhone" required placeholder="10 अंकों का नंबर" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg font-mono" />
-        </div>
-        <div>
-          <label class="font-semibold text-gray-700">4-अंकों का नया पिन</label>
-          <input type="password" id="regPin" required maxlength="4" placeholder="उदा. 4567" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg text-center font-mono tracking-widest text-base" />
-        </div>
-        <div>
-          <label class="font-bold text-emerald-800">आपकी श्रेणी (Role)</label>
+          <label class="font-bold text-emerald-800">आपकी भूमिका (Role)</label>
           <select id="regRole" required class="w-full mt-1 p-2 bg-emerald-50 border border-emerald-300 rounded-lg font-bold text-emerald-900">
+            <option value="स्वतंत्र यूट्यूबर" selected>📹 स्वतंत्र यूट्यूबर</option>
             <option value="मंडी कर्मी">🏛️ मंडी कर्मी</option>
-            <option value="स्वतंत्र यूट्यूबर">📹 स्वतंत्र यूट्यूबर</option>
             <option value="व्यापारी">🏬 व्यापारी</option>
-            <option value="आढ़तिया" selected>🏪 आढ़तिया</option>
+            <option value="आढ़तिया">🏪 आढ़तिया</option>
             <option value="पत्रकार">📰 पत्रकार</option>
           </select>
         </div>
-        <div>
-          <label class="font-semibold text-gray-700">मंडी या फर्म का नाम</label>
-          <input type="text" id="regMandi" placeholder="उदा. भवानीमंडी / माँ दुर्गा ट्रेडिंग" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
+
+        <!-- STATE -> DISTRICT -> MANDI SELECTION -->
+        <div class="bg-gray-50 p-2.5 rounded-xl border space-y-2">
+          <p class="font-bold text-gray-700 text-[11px]">📍 अपनी अधिकृत कार्यक्षेत्र मंडी चुनें:</p>
+          <div>
+            <label class="text-[10px] text-gray-500">1. राज्य चुनें</label>
+            <select id="regState" onchange="onStateChange()" class="w-full mt-0.5 p-1.5 bg-white border rounded font-medium">
+              <option value="मध्य प्रदेश">मध्य प्रदेश</option>
+              <option value="राजस्थान">राजस्थान</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[10px] text-gray-500">2. ज़िला चुनें</label>
+            <select id="regDistrict" onchange="onDistrictChange()" class="w-full mt-0.5 p-1.5 bg-white border rounded font-medium"></select>
+          </div>
+          <div>
+            <label class="text-[10px] text-gray-500">3. मंडी का नाम</label>
+            <select id="regMandi" class="w-full mt-0.5 p-1.5 bg-white border rounded font-bold text-emerald-800"></select>
+          </div>
         </div>
-        <p class="text-[10px] text-emerald-800 bg-emerald-50 p-2 rounded border border-emerald-200">
-          🎁 <strong>ज्वाइनिंग रिवॉर्ड:</strong> रजिस्टर करने पर आपको <strong>+50 वेलकम कॉइन्स</strong> तुरंत मिलेंगे!
-        </p>
-        <button type="submit" class="w-full bg-emerald-800 text-white font-bold py-2.5 rounded-xl shadow text-sm">
-          रजिस्टर करें व 50 सिक्के पाएं ➔
+
+        <!-- SECTION & YOUTUBE LINK -->
+        <div>
+          <label class="font-semibold text-gray-700">मंडी का कौन सा सेक्शन कवर करते हैं?</label>
+          <select id="regSection" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg font-medium">
+            <option value="संपूर्ण मंडी (सभी फसलें)">संपूर्ण मंडी (सभी फसलें)</option>
+            <option value="लहसुन विशेष यार्ड">लहसुन विशेष यार्ड</option>
+            <option value="अनाज व तिलहन यार्ड">अनाज व तिलहन यार्ड</option>
+            <option value="प्याज विशेष यार्ड">प्याज विशेष यार्ड</option>
+            <option value="मसाला व अन्य">मसाला व अन्य</option>
+          </select>
+        </div>
+        <div>
+          <label class="font-semibold text-gray-700">YouTube चैनल या वीडियो लिंक</label>
+          <input type="url" id="regYoutube" placeholder="उदा. https://youtube.com/@mandi_report" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg text-xs" />
+        </div>
+
+        <button type="submit" class="w-full bg-emerald-800 text-white font-bold py-2.5 rounded-xl shadow text-sm mt-2">
+          रजिस्टर करें व टेरिटरी लॉक करें ➔
         </button>
       </form>
 
@@ -432,178 +399,109 @@
         }
         return [];
       } catch (err) {
-        console.warn("SQL Fetch Error:", err);
-        return null;
+        return [];
       }
     }
 
-    let mandis = [
-      { id: 1, name: "शामगढ़", district: "मंदसौर", state: "मध्य प्रदेश" },
-      { id: 2, name: "मंदसौर", district: "मंदसौर", state: "मध्य प्रदेश" },
-      { id: 3, name: "भवानीमंडी", district: "झालावाड़", state: "राजस्थान" },
-      { id: 4, name: "नीमच", district: "नीमच", state: "मध्य प्रदेश" },
-      { id: 5, name: "कोटा", district: "कोटा", state: "राजस्थान" }
-    ];
+    // Territory Structure
+    const TERRITORY_DATA = {
+      "मध्य प्रदेश": {
+        "मंदसौर": ["मंदसौर", "शामगढ़", "दलौदा", "सुवासरा", "गरोठ", "पिपलिया मंडी"],
+        "नीमच": ["नीमच", "जावद", "मनासा"],
+        "रतलाम": ["रतलाम", "जावरा", "सैलाना", "आलोट"],
+        "उज्जैन": ["उज्जैन", "नागदा", "महिदपुर", "तराना"],
+        "आगर मालवा": ["आगर मालवा", "सुसनेर", "बड़ौद"]
+      },
+      "राजस्थान": {
+        "झालावाड़": ["भवानीमंडी", "झालावाड़", "खानपुर", "अकलेरा"],
+        "कोटा": ["कोटा (भामाशाह मंडी)", "रामगंजमंडी", "इटावा"],
+        "चित्तौड़गढ़": ["चित्तौड़गढ़", "निम्बाहेड़ा", "कपासन"],
+        "प्रतापगढ़": ["प्रतापगढ़", "छोटी सादड़ी"]
+      }
+    };
 
-    let crops = [
-      { id: 1, name_hi: "सोयाबीन", category: "तिलहन" },
-      { id: 2, name_hi: "गेहूं", category: "अनाज" },
-      { id: 3, name_hi: "लहसुन", category: "मसाला" },
-      { id: 4, name_hi: "सरसों", category: "तिलहन" },
-      { id: 5, name_hi: "चना", category: "दलहन" },
-      { id: 6, name_hi: "अलसी", category: "तिलहन" },
-      { id: 7, name_hi: "मेथी", category: "मसाला" },
-      { id: 8, name_hi: "मसूर", category: "दलहन" }
-    ];
-
+    let mandis = [];
+    let crops = [];
     let rates = [];
     let currentView = "view-home";
     let activeMandiFilter = "all";
     let activeSourceFilter = "ALL";
     let activeDateMode = "SELECTED";
-    let trendDays = 90;
-    let chartInstance = null;
-    let cropChartInstance = null;
-    let activeCropProfileId = null;
 
-    // Current User Session (Points & Streak Loaded)
     let currentUser = JSON.parse(localStorage.getItem("mandi_user")) || null;
 
     window.addEventListener("DOMContentLoaded", () => {
       document.getElementById("globalDate").value = new Date().toISOString().split("T")[0];
       updateActiveDateLabel();
-      updateUserUI();
+      initTerritoryDropdowns();
       initApp();
-      checkDailyLoginBonus(); // Login streak bonus check
+      updateAuthWall();
     });
 
     function updateActiveDateLabel() {
-      const d = document.getElementById("globalDate").value;
-      document.getElementById("activeDateLabel").innerText = d || 'सभी';
+      document.getElementById("activeDateLabel").innerText = document.getElementById("globalDate").value || 'सभी';
     }
 
-    function calculateBadge(points) {
-      if (points >= 1500) return "💎 मंडी रत्न";
-      if (points >= 500) return "🥇 गोल्ड रिपोर्टर";
-      if (points >= 100) return "🥈 सिल्वर रिपोर्टर";
-      return "🥉 कांस्य सदस्य";
-    }
+    // ================= STRICT AUTH WALL LOGIC =================
+    function updateAuthWall() {
+      const lockBox = document.getElementById("entryAuthLock");
+      const mainBox = document.getElementById("entryMainContent");
 
-    function updateUserUI() {
-      const nameEl = document.getElementById("pubNameDisplay");
-      const roleEl = document.getElementById("pubRoleDisplay");
-      const statsEl = document.getElementById("pubRewardStats");
-
-      if (currentUser) {
-        nameEl.innerText = currentUser.name;
-        roleEl.innerText = currentUser.role;
-        const pts = currentUser.reward_points || 0;
-        const streak = currentUser.streak_count || 1;
-        const badge = calculateBadge(pts);
-
-        let verifyHtml = currentUser.is_verified == 1 
-          ? `<span class="bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded text-[10px]">✓ वेरिफाइड</span>`
-          : `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1.5 py-0.5 rounded text-[10px]">⚠️ अन-वेरिफाइड</span>`;
-
-        statsEl.innerHTML = `
-          <span class="bg-amber-100 text-amber-900 font-black px-2 py-0.5 rounded-full text-[10px] flex items-center gap-1 border border-amber-300">
-            <span>🪙</span> <span>${pts} कॉइन्स</span>
-          </span>
-          <span class="bg-red-50 text-red-700 font-bold px-2 py-0.5 rounded-full text-[10px] flex items-center gap-0.5 border border-red-200">
-            <span>🔥</span> <span>${streak} दिन स्ट्रीक</span>
-          </span>
-          <span class="bg-blue-50 text-blue-800 font-bold px-2 py-0.5 rounded text-[10px]">
-            ${badge}
-          </span>
-          ${verifyHtml}
-        `;
+      if (!currentUser) {
+        lockBox.classList.remove("hidden");
+        mainBox.classList.add("hidden");
       } else {
-        nameEl.innerText = "अतिथि";
-        roleEl.innerText = "लॉगिन करें";
-        statsEl.innerHTML = `<span class="text-[10px] text-gray-400">लॉगिन करने पर दैनिक बोनस व कॉइन्स मिलते हैं</span>`;
-      }
-    }
+        lockBox.classList.add("hidden");
+        mainBox.classList.remove("hidden");
 
-    // ================= GAMIFICATION: DAILY LOGIN BONUS =================
-    async function checkDailyLoginBonus() {
-      if (!currentUser || !currentUser.phone) return;
+        document.getElementById("loggedNameDisplay").innerText = currentUser.name;
+        document.getElementById("loggedRoleDisplay").innerText = currentUser.role;
+        document.getElementById("loggedMandiDisplay").innerText = `${currentUser.mandi_name} (${currentUser.district || ''}, ${currentUser.state || ''})`;
+        document.getElementById("loggedSectionDisplay").innerText = currentUser.assigned_section || 'संपूर्ण मंडी';
 
-      const today = new Date().toISOString().split("T")[0];
-      const lastLogin = localStorage.getItem(`last_login_${currentUser.phone}`);
-
-      if (lastLogin !== today) {
-        // Daily login award: +5 points
-        currentUser.reward_points = (currentUser.reward_points || 0) + 5;
-        currentUser.streak_count = (currentUser.streak_count || 0) + 1;
-
-        // 7-day streak bonus check
-        let extraMsg = "";
-        if (currentUser.streak_count % 7 === 0) {
-          currentUser.reward_points += 100;
-          extraMsg = "\n🔥 बधाई! लगातार 7 दिन पूरे होने पर +100 स्ट्रीक बोनस मिला!";
+        const vBadge = document.getElementById("loggedVerifyBadge");
+        if (currentUser.is_verified == 1) {
+          vBadge.innerHTML = `<span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded text-[10px]">✓ एडमिन अधिकृत व वेरिफाइड रिपोर्टर</span>`;
+        } else {
+          vBadge.innerHTML = `<span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-2 py-0.5 rounded text-[10px]">⚠️ सत्यापन लंबित (अन-वेरिफाइड)</span>`;
         }
-
-        localStorage.setItem(`last_login_${currentUser.phone}`, today);
-        localStorage.setItem("mandi_user", JSON.stringify(currentUser));
-        updateUserUI();
-
-        // Sync to Turso DB
-        await sqlQuery(`
-          UPDATE users 
-          SET reward_points = ${currentUser.reward_points}, 
-              streak_count = ${currentUser.streak_count}, 
-              last_login_date = '${today}' 
-          WHERE phone = '${currentUser.phone}';
-        `);
-
-        alert(`🎉 दैनिक लॉगिन बोनस: +5 कॉइन्स खाते में जुड़े!${extraMsg}`);
       }
     }
 
-    // Reward Credit Function (सत्यापित यूजर को हर भाव पोस्टिंग पर रिवॉर्ड)
-    async function awardPoints(points, action) {
-      if (!currentUser || !currentUser.phone) return;
-
-      // अगर यूजर वेरिफाइड नहीं है तो उसे आधा या केवल पेंडिंग कॉइन मिले, वेरिफाइड को पूरा मिले
-      const isVer = (currentUser.is_verified == 1);
-      const earned = isVer ? points : Math.round(points / 2);
-
-      currentUser.reward_points = (currentUser.reward_points || 0) + earned;
-      localStorage.setItem("mandi_user", JSON.stringify(currentUser));
-      updateUserUI();
-
-      await sqlQuery(`
-        UPDATE users SET reward_points = ${currentUser.reward_points} WHERE phone = '${currentUser.phone}';
-      `);
-      await sqlQuery(`
-        INSERT INTO reward_transactions (user_phone, points, action_type, description)
-        VALUES ('${currentUser.phone}', ${earned}, '${action}', 'भाव अपडेट रिवॉर्ड');
-      `);
-
-      return earned;
+    // Territory Cascading
+    function initTerritoryDropdowns() {
+      onStateChange();
     }
 
-    // ================= AUTH MODAL LOGIC =================
+    window.onStateChange = function() {
+      const state = document.getElementById("regState").value;
+      const distSelect = document.getElementById("regDistrict");
+      const dists = Object.keys(TERRITORY_DATA[state] || {});
+      distSelect.innerHTML = dists.map(d => `<option value="${d}">${d}</option>`).join("");
+      onDistrictChange();
+    };
+
+    window.onDistrictChange = function() {
+      const state = document.getElementById("regState").value;
+      const dist = document.getElementById("regDistrict").value;
+      const mandiSelect = document.getElementById("regMandi");
+      const mandisList = TERRITORY_DATA[state]?.[dist] || [];
+      mandiSelect.innerHTML = mandisList.map(m => `<option value="${m}">${m} मंडी</option>`).join("");
+    };
+
+    // Auth Modal Handlers
     function openAuthModal(tab = 'login') {
       document.getElementById("authModal").classList.remove("hidden");
       switchAuthTab(tab);
     }
-
-    function closeAuthModal() {
-      document.getElementById("authModal").classList.add("hidden");
-    }
+    function closeAuthModal() { document.getElementById("authModal").classList.add("hidden"); }
 
     function switchAuthTab(tab) {
       const isLogin = tab === 'login';
       document.getElementById("form-auth-login").classList.toggle("hidden", !isLogin);
       document.getElementById("form-auth-register").classList.toggle("hidden", isLogin);
-
-      document.getElementById("tab-auth-login").className = isLogin 
-        ? "flex-1 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm text-center font-bold" 
-        : "flex-1 py-1.5 rounded-lg text-gray-600 text-center font-medium";
-      document.getElementById("tab-auth-register").className = !isLogin 
-        ? "flex-1 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm text-center font-bold" 
-        : "flex-1 py-1.5 rounded-lg text-gray-600 text-center font-medium";
+      document.getElementById("tab-auth-login").className = isLogin ? "flex-1 py-1.5 rounded-lg bg-white text-emerald-800 font-bold shadow-sm" : "flex-1 py-1.5 rounded-lg text-gray-600";
+      document.getElementById("tab-auth-register").className = !isLogin ? "flex-1 py-1.5 rounded-lg bg-white text-emerald-800 font-bold shadow-sm" : "flex-1 py-1.5 rounded-lg text-gray-600";
     }
 
     async function handleUserLogin(e) {
@@ -611,16 +509,15 @@
       const phone = document.getElementById("loginPhoneInput").value.trim();
       const pin = document.getElementById("loginPinInput").value.trim();
 
-      const users = await sqlQuery(`SELECT * FROM users WHERE phone = '${phone}' AND pin = '${pin}' LIMIT 1;`);
-      if (users && users.length > 0) {
-        currentUser = users[0];
+      const res = await sqlQuery(`SELECT * FROM users WHERE phone = '${phone}' AND pin = '${pin}' LIMIT 1;`);
+      if (res && res.length > 0) {
+        currentUser = res[0];
         localStorage.setItem("mandi_user", JSON.stringify(currentUser));
-        updateUserUI();
+        updateAuthWall();
         closeAuthModal();
-        alert(`✅ स्वागत है ${currentUser.name} जी!\n🪙 आपके पास कुल ${currentUser.reward_points || 0} रिवॉर्ड कॉइन्स हैं।`);
-        await loadData();
+        alert(`✅ स्वागत है ${currentUser.name} जी!\nआपकी अधिकृत मंडी: ${currentUser.mandi_name}`);
       } else {
-        alert("❌ मोबाइल नंबर या पिन गलत है! अगर खाता नहीं है तो 'नया रजिस्ट्रेशन' करें।");
+        alert("❌ गलत मोबाइल या पिन!");
       }
     }
 
@@ -630,77 +527,62 @@
       const phone = document.getElementById("regPhone").value.trim();
       const pin = document.getElementById("regPin").value.trim();
       const role = document.getElementById("regRole").value;
-      const mandi = document.getElementById("regMandi").value.trim() || 'मालवा';
-
-      if (phone.length < 10) { alert("कृपया 10 अंकों का सही मोबाइल नंबर डालें!"); return; }
-      if (pin.length < 4) { alert("कृपया 4 अंकों का पिन बनाएं!"); return; }
+      const state = document.getElementById("regState").value;
+      const dist = document.getElementById("regDistrict").value;
+      const mandi = document.getElementById("regMandi").value;
+      const sec = document.getElementById("regSection").value;
+      const yt = document.getElementById("regYoutube").value.trim();
 
       const existing = await sqlQuery(`SELECT id FROM users WHERE phone = '${phone}' LIMIT 1;`);
-      if (existing && existing.length > 0) {
-        alert("⚠️ यह मोबाइल नंबर पहले से पंजीकृत है! कृपया लॉगिन करें।");
+      if (existing.length > 0) {
+        alert("⚠️ यह नंबर पहले से पंजीकृत है! कृपया लॉगिन करें।");
         switchAuthTab('login');
-        document.getElementById("loginPhoneInput").value = phone;
         return;
       }
 
-      // 50 Welcome Coins on Registration
       await sqlQuery(`
-        INSERT INTO users (name, phone, pin, role, mandi_name, is_verified, reward_points, streak_count) 
-        VALUES ('${name}', '${phone}', '${pin}', '${role}', '${mandi}', 0, 50, 1);
+        INSERT INTO users (name, phone, pin, role, state, district, mandi_name, assigned_section, youtube_url, is_verified)
+        VALUES ('${name}', '${phone}', '${pin}', '${role}', '${state}', '${dist}', '${mandi}', '${sec}', '${yt}', 0);
       `);
 
       currentUser = {
-        name: name,
-        phone: phone,
-        pin: pin,
-        role: role,
-        mandi_name: mandi,
-        is_verified: 0,
-        reward_points: 50,
-        streak_count: 1
+        name, phone, pin, role, state, district: dist, mandi_name: mandi, assigned_section: sec, youtube_url: yt, is_verified: 0
       };
       localStorage.setItem("mandi_user", JSON.stringify(currentUser));
-      updateUserUI();
+      updateAuthWall();
       closeAuthModal();
-
-      alert(`🎉 बधाई ${name} जी!\nआपको 50 वेलकम कॉइन्स मिले हैं।\n\nएडमिन सत्यापन के बाद आपको प्रति भाव +20 कॉइन्स व स्टार बैज मिलेंगे!`);
-      await loadData();
+      alert(`🎉 बधाई ${name} जी!\nआपका नाम '${mandi} मंडी' के लिए टेरिटरी लॉक हो चुका है।\nएडमिन सत्यापन के बाद आपका यूट्यूब वीडियो किसानों को दिखने लगेगा।`);
     }
 
     window.logoutPublisher = function() {
-      if (confirm("क्या आप इस प्रोफाइल से लॉगआउट करना चाहते हैं?")) {
+      if (confirm("लॉगआउट करना चाहते हैं?")) {
         localStorage.removeItem("mandi_user");
         currentUser = null;
-        updateUserUI();
-        alert("✅ आप सफलतापूर्वक लॉगआउट हो गए हैं!");
+        updateAuthWall();
       }
     };
 
-    // ================= INITIALIZE & LOAD DATA =================
+    // App Init
     async function initApp() {
-      populateDropdowns();
-      renderMandiChips();
+      const [mRows, cRows] = await Promise.all([
+        sqlQuery("SELECT id, name, district, state FROM mandis WHERE is_active = 1;"),
+        sqlQuery("SELECT id, name_hi FROM commodities ORDER BY name_hi ASC;")
+      ]);
+      mandis = mRows;
+      crops = cRows;
 
-      const mRows = await sqlQuery("SELECT id, name, district, state FROM mandis WHERE is_active = 1 ORDER BY name ASC;");
-      if (mRows && mRows.length > 0) mandis = mRows;
-
-      const cRows = await sqlQuery("SELECT id, name_hi, category FROM commodities ORDER BY name_hi ASC;");
-      if (cRows && cRows.length > 0) crops = cRows;
-
-      populateDropdowns();
+      document.getElementById("singleCropSelect").innerHTML = crops.map(c => `<option value="${c.id}">${c.name_hi}</option>`).join("");
       renderMandiChips();
       await loadData();
     }
 
     async function loadData() {
-      // Joins users table to fetch is_verified and reward points
-      const live = await sqlQuery(`
+      rates = await sqlQuery(`
         SELECT p.*, 
                COALESCE(m.name, 'मंडी') as mandi_name, 
                COALESCE(c.name_hi, 'फसल') as crop_name,
                COALESCE(u.is_verified, 0) as user_verified,
-               COALESCE(u.role, p.user_role) as publisher_role,
-               COALESCE(u.reward_points, 0) as publisher_points
+               COALESCE(u.youtube_url, p.video_url) as live_video_url
         FROM price_records p
         LEFT JOIN mandis m ON p.mandi_id = m.id
         LEFT JOIN commodities c ON p.commodity_id = c.id
@@ -708,680 +590,160 @@
         WHERE p.status = 'approved'
         ORDER BY p.id DESC LIMIT 400;
       `);
-
-      if (live && live.length > 0) rates = live;
       renderRates();
-      renderComparisonResult();
-      if (currentView === "view-trend") updateTrendChart();
-
-      // Refresh current user session from DB
-      if (currentUser && currentUser.phone) {
-        const u = await sqlQuery(`SELECT is_verified, reward_points, streak_count FROM users WHERE phone = '${currentUser.phone}' LIMIT 1;`);
-        if (u && u.length > 0) {
-          currentUser.is_verified = u[0].is_verified;
-          currentUser.reward_points = u[0].reward_points;
-          currentUser.streak_count = u[0].streak_count;
-          localStorage.setItem("mandi_user", JSON.stringify(currentUser));
-          updateUserUI();
-        }
-      }
-    }
-
-    function populateDropdowns() {
-      const mSelectors = ["mpMandi", "rjMandi", "trendMandi", "compareM1", "compareM2"];
-      mSelectors.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = mandis.map(m => `<option value="${m.id}">${m.name} (${m.district})</option>`).join("");
-      });
-
-      if (document.getElementById("trendMandi") && mandis.find(x => x.id === 3)) {
-        document.getElementById("trendMandi").value = 3;
-      }
-      if (document.getElementById("compareM2") && mandis[2]) {
-        document.getElementById("compareM2").value = mandis[2].id;
-      }
-
-      const cSelectors = ["mpCrop", "rjCrop", "trendCrop", "compareCrop"];
-      cSelectors.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = crops.map(c => `<option value="${c.id}">${c.name_hi}</option>`).join("");
-      });
     }
 
     function renderMandiChips() {
       const c = document.getElementById("mandiChips");
       if (!c) return;
-      let html = `<button onclick="setMandiFilter('all')" class="mandi-chip bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-full shadow-sm whitespace-nowrap" data-id="all">सभी मंडियां</button>`;
+      let html = `<button onclick="setMandiFilter('all')" class="mandi-chip bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-full shadow-sm whitespace-nowrap">सभी मंडियां</button>`;
       mandis.forEach(m => {
-        html += `<button onclick="setMandiFilter(${m.id})" class="mandi-chip bg-white text-gray-700 px-3 py-1.5 rounded-full shadow-sm whitespace-nowrap" data-id="${m.id}">${m.name}</button>`;
+        html += `<button onclick="setMandiFilter(${m.id})" class="mandi-chip bg-white text-gray-700 px-3 py-1.5 rounded-full shadow-sm whitespace-nowrap">${m.name}</button>`;
       });
       c.innerHTML = html;
     }
 
     function setMandiFilter(id) {
       activeMandiFilter = id;
-      document.querySelectorAll(".mandi-chip").forEach(chip => {
-        chip.className = chip.getAttribute("data-id") == id 
-          ? "mandi-chip bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-full shadow-sm whitespace-nowrap" 
-          : "mandi-chip bg-white text-gray-700 px-3 py-1.5 rounded-full shadow-sm whitespace-nowrap";
-      });
       renderRates();
     }
-
     function setSourceFilter(src) {
       activeSourceFilter = src;
-      ['all', 'mp', 'rj'].forEach(k => {
-        const b = document.getElementById(`flt-${k}`);
-        if ((k === 'all' && src === 'ALL') || (k === 'mp' && src === 'MP_BOARD') || (k === 'rj' && src === 'RJ_ADATH')) {
-          b.className = "flex-1 py-1.5 rounded-lg bg-emerald-800 text-white font-bold shadow-sm text-center";
-        } else {
-          b.className = "flex-1 py-1.5 rounded-lg bg-white text-gray-700 font-semibold shadow-sm text-center";
-        }
-      });
       renderRates();
     }
 
-    window.setDateMode = function(mode) {
-      activeDateMode = mode;
-      const bSel = document.getElementById("btn-date-selected");
-      const bAll = document.getElementById("btn-date-all");
-      if (mode === 'SELECTED') {
-        bSel.className = "px-2.5 py-1 rounded-md bg-emerald-800 text-white font-bold text-[11px] shadow-sm";
-        bAll.className = "px-2.5 py-1 rounded-md bg-gray-100 text-gray-700 font-medium text-[11px]";
-      } else {
-        bAll.className = "px-2.5 py-1 rounded-md bg-emerald-800 text-white font-bold text-[11px] shadow-sm";
-        bSel.className = "px-2.5 py-1 rounded-md bg-gray-100 text-gray-700 font-medium text-[11px]";
-      }
-      renderRates();
-    };
-
-    window.onDateChanged = function() {
-      updateActiveDateLabel();
-      setDateMode('SELECTED');
-    };
-
-    // ================= RENDER RATES (WITH REPUTATION BADGES) =================
+    // ================= RENDER RATES WITH VIDEO BADGE =================
     function renderRates() {
       const container = document.getElementById("ratesContainer");
       const search = document.getElementById("globalSearch")?.value.trim().toLowerCase() || "";
       const selectedDate = document.getElementById("globalDate").value;
 
       const filtered = rates.filter(r => {
-        const rDate = String(r.price_date || '').trim();
-        const matchDate = (activeDateMode === 'ALL') ? true : (rDate === selectedDate);
+        const matchDate = (activeDateMode === 'ALL') ? true : (r.price_date === selectedDate);
         const matchM = activeMandiFilter === "all" ? true : r.mandi_id == activeMandiFilter;
-        const matchSrc = activeSourceFilter === "ALL" ? true : r.source_type === activeSourceFilter;
-        const matchS = !search || 
-          (r.crop_name && r.crop_name.toLowerCase().includes(search)) || 
-          (r.mandi_name && r.mandi_name.toLowerCase().includes(search)) || 
-          (r.firm_name && r.firm_name.toLowerCase().includes(search)) || 
-          (r.submitted_by && r.submitted_by.toLowerCase().includes(search)) ||
-          (r.quality_grade && r.quality_grade.toLowerCase().includes(search));
-
-        return matchDate && matchM && matchSrc && matchS;
+        const matchS = !search || r.crop_name.toLowerCase().includes(search) || r.mandi_name.toLowerCase().includes(search);
+        return matchDate && matchM && matchS;
       });
 
       if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="bg-white p-6 rounded-xl text-center shadow-sm space-y-2">
-            <span class="text-3xl block">🌾</span>
-            <p class="text-gray-800 font-bold text-sm">तारीख ${selectedDate} का कोई भाव नहीं मिला</p>
-            <p class="text-gray-400 text-xs">क्या आप अन्य उपलब्ध तारीखों के भाव देखना चाहते हैं?</p>
-            <button onclick="setDateMode('ALL')" class="bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-lg shadow mt-2">
-              👉 सभी तारीखों के भाव देखें (${rates.length} भाव उपलब्ध)
-            </button>
-          </div>`;
+        container.innerHTML = `<div class="bg-white p-6 rounded-xl text-center shadow-sm text-xs text-gray-400">कोई भाव उपलब्ध नहीं है।</div>`;
         return;
       }
 
       container.innerHTML = filtered.map(r => {
-        const isMP = (r.source_type === "MP_BOARD" || r.source_type === "MANDI_OPERATOR");
-        const isUnverified = (r.user_verified === 0 || r.user_verified === "0") && r.submitted_by;
-        const userBadge = calculateBadge(r.publisher_points || 0);
+        const isUnverified = (r.user_verified == 0) && r.submitted_by;
+        const hasVideo = r.live_video_url && r.live_video_url.includes("http");
 
         return `
-          <div class="bg-white rounded-xl p-3.5 shadow-sm border-l-4 ${isUnverified ? 'border-amber-500 bg-amber-50/20' : (isMP ? 'border-emerald-700' : 'border-blue-600')} border-gray-100">
+          <div class="bg-white rounded-xl p-3.5 shadow-sm border-l-4 ${isUnverified ? 'border-amber-500' : 'border-emerald-700'} border-gray-100">
             <div class="flex justify-between items-start mb-1.5">
               <div>
                 <div class="flex items-center gap-1.5 flex-wrap">
-                  <button onclick="openCropProfile(${r.commodity_id}, '${r.crop_name}')" 
-                          class="text-base font-black text-gray-900 hover:text-emerald-700 flex items-center gap-1">
-                    <span>${r.crop_name}</span>
-                    <span class="text-[10px] text-gray-400 font-normal">➔ ट्रेंड</span>
-                  </button>
-                  <span class="text-[9px] ${isMP ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'} font-bold px-2 py-0.5 rounded-full">
-                    ${isMP ? '🏛️ MP बोर्ड' : '🏪 राज. आढ़त'}
+                  <span class="text-base font-black text-gray-900">${r.crop_name}</span>
+                  <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">
+                    📍 ${r.mandi_name}
                   </span>
-
-                  <!-- Status / Reputation Badges -->
-                  ${isUnverified ? `
-                    <span class="bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1.5 py-0.2 rounded text-[9px] flex items-center gap-0.5">
-                      <span>⚠️</span> अन-वेरिफाइड
-                    </span>
-                  ` : `
-                    <span class="bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold px-1.5 py-0.2 rounded text-[9px]">
-                      ${userBadge}
-                    </span>
-                  `}
+                  ${isUnverified ? `<span class="bg-amber-100 text-amber-900 font-bold px-1.5 py-0.2 rounded text-[9px]">⚠️ अन-वेरिफाइड</span>` : ''}
                 </div>
-
-                <button onclick="openMandiProfile(${r.mandi_id}, '${r.mandi_name}', '${r.firm_name || ''}', '${r.source_type}')" 
-                        class="text-left mt-0.5 block hover:underline">
-                  <p class="text-xs ${isMP ? 'text-emerald-800 font-semibold' : 'text-blue-900 font-bold'} flex items-center gap-1">
-                    <span>📍</span> 
-                    <span>${isMP ? (r.mandi_name + ' मंडी समिति') : (r.firm_name || r.mandi_name + ' मंडी')}</span>
-                  </p>
-                </button>
-
                 <p class="text-[10px] text-gray-500 mt-0.5">${r.quality_grade || 'सामान्य'}</p>
-                
-                ${r.submitted_by ? `
-                  <p class="text-[9px] text-gray-500 mt-0.5">
-                    पोस्टकर्ता: <strong class="text-gray-800">${r.submitted_by}</strong> 
-                    ${r.publisher_role ? `<span class="text-gray-500 font-medium">(${r.publisher_role})</span>` : ''}
-                  </p>
-                ` : ''}
+                ${r.submitted_by ? `<p class="text-[9px] text-gray-400">रिपोर्टर: <strong>${r.submitted_by}</strong> (${r.user_role || 'अधिकृत'})</p>` : ''}
               </div>
-
-              <span class="text-[10px] ${isMP ? 'bg-gray-100 text-gray-700' : 'bg-blue-50 text-blue-800'} font-semibold px-2 py-0.5 rounded font-mono">
-                ${r.price_date || ''}
-              </span>
+              <span class="text-[10px] bg-gray-100 font-mono px-2 py-0.5 rounded">${r.price_date}</span>
             </div>
 
-            <div class="grid grid-cols-3 gap-1.5 ${isMP ? 'bg-emerald-50/50 border-emerald-100' : 'bg-blue-50/40 border-blue-100'} p-2 rounded-lg text-center border mt-2">
-              <div><span class="text-[9px] text-gray-500 block">न्यूनतम</span><span class="text-xs font-bold text-gray-700">₹${r.price_min}</span></div>
-              <div class="border-x ${isMP ? 'border-emerald-200' : 'border-blue-200'}">
-                <span class="text-[9px] ${isMP ? 'text-emerald-700' : 'text-blue-700'} font-bold block">मॉडल (औसत)</span>
-                <span class="text-sm font-extrabold ${isMP ? 'text-emerald-800' : 'text-blue-900'}">₹${r.price_modal || r.price_min}</span>
+            <div class="grid grid-cols-3 gap-1 bg-emerald-50/50 p-2 rounded-lg text-center text-xs mt-2 border border-emerald-100">
+              <div><span class="text-[9px] text-gray-400 block">न्यूनतम</span><strong>₹${r.price_min}</strong></div>
+              <div><span class="text-[9px] text-emerald-700 font-bold block">मॉडल भाव</span><strong class="text-emerald-800 text-sm">₹${r.price_modal}</strong></div>
+              <div><span class="text-[9px] text-gray-400 block">अधिकतम</span><strong>₹${r.price_max}</strong></div>
+            </div>
+
+            <!-- Video Embed Button (Only if verified and has YouTube Link) -->
+            ${hasVideo && !isUnverified ? `
+              <div class="mt-2 pt-1 border-t border-gray-100 flex justify-between items-center">
+                <span class="text-[10px] text-gray-500">मंडी नीलामी वीडियो:</span>
+                <a href="${r.live_video_url}" target="_blank" class="bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] px-2.5 py-1 rounded-md shadow-sm flex items-center gap-1">
+                  <span>▶️</span> YouTube लाइव रिपोर्ट देखें
+                </a>
               </div>
-              <div><span class="text-[9px] text-gray-500 block">अधिकतम</span><span class="text-xs font-bold text-gray-700">₹${r.price_max}</span></div>
-            </div>
-
-            <div class="flex justify-between items-center text-[10px] text-gray-500 mt-2 pt-1 border-t border-gray-50">
-              <span>🚛 आवक: <strong class="text-gray-800">${r.arrival_quantity || '0'} बोरी</strong></span>
-              <span class="${isMP ? 'text-emerald-700 font-semibold' : 'text-blue-700 font-medium'}">
-                ${isMP ? '✓ समिति प्रमाणित' : 'कांटे पर नकद'}
-              </span>
-            </div>
+            ` : ''}
           </div>
         `;
       }).join("");
     }
 
-    // ================= WHATSAPP AUTO-PUBLISH + REWARD COINS =================
-    function parseWhatsAppMessageText(raw) {
-      const dMatch = raw.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
-      let pDate = new Date().toISOString().split('T')[0];
-      if (dMatch) {
-        pDate = `${dMatch[3]}-${dMatch[2].padStart(2, '0')}-${dMatch[1].padStart(2, '0')}`;
-      }
+    // ================= PUBLISH LOGIC (LOCKED TO USER'S ASSIGNED MANDI) =================
+    window.handleAutoPublish = async function() {
+      if (!currentUser) { alert("लॉगिन अनिवार्य है!"); return; }
 
-      let matchedMandi = "भवानीमंडी";
-      for (const m of mandis) {
-        if (raw.includes(m.name)) {
-          matchedMandi = m.name;
-          break;
-        }
-      }
+      const text = document.getElementById("rawWhatsAppBox").value;
+      const video = document.getElementById("reportVideoUrl").value.trim();
+      if (!text.trim()) { alert("कृपया भाव टेक्स्ट पेस्ट करें!"); return; }
 
-      const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
-      let firm = "माँ दुर्गा ट्रेडिंग कम्पनी";
-      for (const l of lines) {
-        if (l.includes("ट्रेडिंग") || l.includes("कम्पनी") || l.includes("कंपनी") || l.includes("फर्म") || l.includes("ब्रदर्स")) {
-          firm = l.replace(/[🙏\r]/g, '').trim();
-          break;
-        }
-      }
+      // Mandi is strictly locked to currentUser.mandi_name
+      let mObj = mandis.find(m => m.name.includes(currentUser.mandi_name)) || mandis[0];
 
-      let note = "";
-      const noteIdx = lines.findIndex(l => l.includes("नोट") || l.includes("कंडीशन") || l.includes("नमी"));
-      if (noteIdx !== -1) {
-        note = lines[noteIdx].replace(/नोट/g, '').replace(/[🙏]/g, '').trim();
-      }
+      // Parse WhatsApp lines
+      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+      let count = 0;
 
-      const knownCrops = ["सोयाबीन", "अलसी", "मेथी", "सरसो", "सरसों", "चना", "मसूर", "गेहूं", "लहसुन", "धनिया", "प्याज", "इसबगोल"];
-      const items = [];
-      let activeCrop = "";
-
-      for (let i = 0; i < lines.length; i++) {
-        let line = lines[i];
-
-        for (const c of knownCrops) {
-          if (line.includes(c)) {
-            activeCrop = (c === "सरसो") ? "सरसों" : c;
-            break;
-          }
-        }
-
-        if (line.endsWith("से") && lines[i + 1] && /^\d+/.test(lines[i + 1])) {
-          line = line + " " + lines[i + 1];
-        }
-
+      for (let line of lines) {
         const match = line.match(/(\d{3,6})\s*(?:से|\-|to)\s*(\d{3,6})/i);
-        if (match && activeCrop) {
+        if (match) {
           const min = parseFloat(match[1]);
           const max = parseFloat(match[2]);
           const modal = Math.round((min + max) / 2);
 
-          let quality = line
-            .replace(new RegExp(activeCrop, 'g'), '')
-            .replace(/(\d{3,6})\s*(?:से|\-|to)\s*(\d{3,6})/i, '')
-            .replace(/से/g, '')
-            .replace(/[\d]/g, '')
-            .trim();
-
-          if (!quality) quality = "सामान्य";
-
-          items.push({
-            crop: activeCrop,
-            quality: quality,
-            min: min,
-            max: max,
-            modal: modal
-          });
-        }
-      }
-
-      return {
-        mandi: matchedMandi,
-        firm: firm,
-        date: pDate,
-        note: note,
-        items: items
-      };
-    }
-
-    window.handleAutoPublish = async function() {
-      if (!currentUser) {
-        alert("⚠️ भाव प्रकाशित करने और कॉइन्स कमाने के लिए कृपया पहले लॉगिन या रजिस्ट्रेशन करें!");
-        openAuthModal('login');
-        return;
-      }
-
-      const text = document.getElementById("rawWhatsAppBox").value;
-      if (!text.trim()) {
-        alert("कृपया पहले व्हाट्सएप मैसेज पेस्ट करें!");
-        return;
-      }
-
-      const parsed = parseWhatsAppMessageText(text);
-      if (!parsed.items || parsed.items.length === 0) {
-        alert("कोई भाव नहीं मिला! कृपया सुनिश्चित करें कि भाव '4800 से 5000' प्रारूप में लिखे हों।");
-        return;
-      }
-
-      const btn = document.getElementById("btnAutoPublish");
-      btn.disabled = true;
-      btn.innerText = "🚀 सीधे लाइव हो रहा है...";
-
-      const mandiObj = mandis.find(m => m.name.includes(parsed.mandi)) || mandis[0];
-      const mandiId = mandiObj.id;
-
-      try {
-        for (const it of parsed.items) {
-          let cObj = crops.find(c => c.name_hi === it.crop);
-          let cId = cObj ? cObj.id : 1;
-          const qualityDesc = it.quality + (parsed.note ? ` (${parsed.note})` : '');
+          // Find crop
+          let matchedCrop = crops.find(c => line.includes(c.name_hi)) || crops[0];
 
           await sqlQuery(`
             INSERT INTO price_records 
-            (mandi_id, commodity_id, source_type, firm_name, quality_grade, price_min, price_max, price_modal, price_date, submitted_by, user_role, user_phone, status)
-            VALUES (${mandiId}, ${cId}, 'RJ_ADATH', '${parsed.firm}', '${qualityDesc}', ${it.min}, ${it.max}, ${it.modal}, '${parsed.date}', '${currentUser.name}', '${currentUser.role}', '${currentUser.phone}', 'approved');
+            (mandi_id, commodity_id, source_type, firm_name, quality_grade, price_min, price_max, price_modal, price_date, submitted_by, user_role, user_phone, video_url, status)
+            VALUES (${mObj.id}, ${matchedCrop.id}, 'MP_BOARD', '${currentUser.mandi_name} मंडी', '${currentUser.assigned_section}', ${min}, ${max}, ${modal}, DATE('now'), '${currentUser.name}', '${currentUser.role}', '${currentUser.phone}', '${video || currentUser.youtube_url || ''}', 'approved');
           `);
+          count++;
         }
-
-        // Award Bulk WhatsApp Bonus Points
-        const earnedCoins = await awardPoints(30, 'WHATSAPP_BULK_POST');
-
-        alert(`✅ बधाई! सभी ${parsed.items.length} भाव तुरंत लाइव हो गए हैं!\n🪙 आपको +${earnedCoins} रिवॉर्ड कॉइन्स मिले हैं!`);
-        document.getElementById("globalDate").value = parsed.date;
-        updateActiveDateLabel();
-        setDateMode('SELECTED');
-        document.getElementById("rawWhatsAppBox").value = "";
-
-        switchView("view-home");
-        await loadData();
-      } catch (err) {
-        alert("त्रुटि: " + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.innerText = "🚀 सीधे लाइव प्रकाशित करें";
       }
+
+      alert(`✅ ${currentUser.mandi_name} मंडी के ${count} भाव तुरंत लाइव हो गए!`);
+      document.getElementById("rawWhatsAppBox").value = "";
+      switchView("view-home");
+      loadData();
     };
 
-    // Manual MP Submit (+20 Points)
-    async function submitMPBoardRate(e) {
+    window.submitManualRate = async function(e) {
       e.preventDefault();
-      if (!currentUser) {
-        alert("⚠️ भाव प्रकाशित करने से पहले लॉगिन या रजिस्ट्रेशन करें!");
-        openAuthModal('login');
-        return;
-      }
+      if (!currentUser) return;
 
-      const mId = document.getElementById("mpMandi").value;
-      const cId = document.getElementById("mpCrop").value;
-      const yard = document.getElementById("mpYard").value || 'मुख्य डाक यार्ड';
-      const min = parseFloat(document.getElementById("mpMin").value);
-      const modal = parseFloat(document.getElementById("mpModal").value);
-      const max = parseFloat(document.getElementById("mpMax").value);
-      const bags = parseInt(document.getElementById("mpArrivalBags").value) || 0;
-      const dateVal = document.getElementById("globalDate").value;
+      let mObj = mandis.find(m => m.name.includes(currentUser.mandi_name)) || mandis[0];
+      const cropId = document.getElementById("singleCropSelect").value;
+      const quality = document.getElementById("singleQuality").value || currentUser.assigned_section;
+      const min = document.getElementById("singleMin").value;
+      const modal = document.getElementById("singleModal").value;
+      const max = document.getElementById("singleMax").value;
 
       await sqlQuery(`
         INSERT INTO price_records 
-        (mandi_id, commodity_id, source_type, firm_name, quality_grade, price_min, price_max, price_modal, arrival_quantity, price_date, submitted_by, user_role, user_phone, status)
-        VALUES (${mId}, ${cId}, 'MP_BOARD', 'कृषि उपज मंडी समिति', '${yard}', ${min}, ${max}, ${modal}, ${bags}, '${dateVal}', '${currentUser.name}', '${currentUser.role}', '${currentUser.phone}', 'approved');
+        (mandi_id, commodity_id, source_type, firm_name, quality_grade, price_min, price_max, price_modal, price_date, submitted_by, user_role, user_phone, video_url, status)
+        VALUES (${mObj.id}, ${cropId}, 'MP_BOARD', '${currentUser.mandi_name} मंडी', '${quality}', ${min}, ${max}, ${modal}, DATE('now'), '${currentUser.name}', '${currentUser.role}', '${currentUser.phone}', '${currentUser.youtube_url || ''}', 'approved');
       `);
 
-      const earned = await awardPoints(20, 'MANUAL_RATE_POST');
-      alert(`🏛️ नीलामी भाव लाइव हुआ!\n🪙 +${earned} रिवॉर्ड कॉइन्स खाते में जुड़े!`);
+      alert(`✅ ${currentUser.mandi_name} मंडी का भाव लाइव हो गया!`);
       switchView("view-home");
       loadData();
-    }
-
-    // Manual RJ Submit (+20 Points)
-    async function submitRJAdathRate(e) {
-      e.preventDefault();
-      if (!currentUser) {
-        alert("⚠️ भाव प्रकाशित करने से पहले लॉगिन या रजिस्ट्रेशन करें!");
-        openAuthModal('login');
-        return;
-      }
-
-      const mId = document.getElementById("rjMandi").value;
-      const cId = document.getElementById("rjCrop").value;
-      const firm = document.getElementById("rjFirm").value;
-      const q = document.getElementById("rjQuality").value || 'सामान्य खरीद';
-      const min = parseFloat(document.getElementById("rjMin").value);
-      const max = parseFloat(document.getElementById("rjMax").value);
-      const modal = (min + max) / 2;
-      const dateVal = document.getElementById("globalDate").value;
-
-      await sqlQuery(`
-        INSERT INTO price_records 
-        (mandi_id, commodity_id, source_type, firm_name, quality_grade, price_min, price_max, price_modal, price_date, submitted_by, user_role, user_phone, status)
-        VALUES (${mId}, ${cId}, 'RJ_ADATH', '${firm}', '${q}', ${min}, ${max}, ${modal}, '${dateVal}', '${currentUser.name}', '${currentUser.role}', '${currentUser.phone}', 'approved');
-      `);
-
-      const earned = await awardPoints(20, 'MANUAL_RATE_POST');
-      alert(`🏪 आढ़त कोटेशन लाइव हुआ!\n🪙 +${earned} रिवॉर्ड कॉइन्स खाते में जुड़े!`);
-      switchView("view-home");
-      loadData();
-    }
-
-    // Navigation & Profiles
-    window.openCropProfile = async function(cropId, cropName) {
-      activeCropProfileId = cropId;
-      document.getElementById("cropProfileTitle").innerText = cropName;
-      document.getElementById("cropProfileMeta").innerText = `${cropName} का विभिन्न मंडियों में आज का भाव`;
-
-      const thisCropRates = rates.filter(r => r.commodity_id == cropId);
-      const mCount = new Set(thisCropRates.map(r => r.mandi_name)).size;
-      document.getElementById("cropMandiCount").innerText = `${mCount} मंडियां लाइव`;
-
-      const listContainer = document.getElementById("cropNearbyMandisList");
-      if (thisCropRates.length === 0) {
-        listContainer.innerHTML = `<p class="text-xs text-gray-400 py-3 text-center">इस फसल का भाव उपलब्ध नहीं है।</p>`;
-      } else {
-        listContainer.innerHTML = thisCropRates.map(r => `
-          <div class="p-2.5 bg-gray-50 rounded-xl border flex justify-between items-center">
-            <div>
-              <button onclick="openMandiProfile(${r.mandi_id}, '${r.mandi_name}', '${r.firm_name || ''}', '${r.source_type}')" 
-                      class="text-left font-bold text-xs text-gray-900 hover:text-emerald-800">
-                📍 ${r.mandi_name} मंडी
-              </button>
-              <p class="text-[10px] text-gray-500">${r.quality_grade || 'सामान्य'} | आवक: ${r.arrival_quantity || '0'} बोरी</p>
-            </div>
-            <div class="text-right">
-              <span class="text-sm font-black text-emerald-800">₹${r.price_modal}</span>
-              <span class="text-[9px] text-gray-400 block font-mono">₹${r.price_min} - ₹${r.price_max}</span>
-            </div>
-          </div>
-        `).join("");
-      }
-
-      await renderCropProfileChart(cropId);
-      switchView("view-crop-profile", cropName, "फसल रिपोर्ट");
     };
 
-    async function renderCropProfileChart(cropId) {
-      const rows = await sqlQuery(`
-        SELECT price_date, ROUND(AVG(price_modal)) as price_modal 
-        FROM price_records 
-        WHERE commodity_id = ${cropId}
-        GROUP BY price_date
-        ORDER BY price_date DESC LIMIT 7;
-      `);
-
-      const dataPoints = (rows && rows.length > 0) ? [...rows].reverse() : [];
-      const ctx = document.getElementById("cropProfileCanvas")?.getContext("2d");
-      if (cropChartInstance) cropChartInstance.destroy();
-
-      if (window.Chart && ctx) {
-        cropChartInstance = new Chart(ctx, {
-          type: "line",
-          data: {
-            labels: dataPoints.map(d => String(d.price_date).slice(-5)),
-            datasets: [{
-              label: "मॉडल भाव (₹)",
-              data: dataPoints.map(d => d.price_modal),
-              borderColor: "#047857",
-              backgroundColor: "rgba(4, 120, 87, 0.12)",
-              borderWidth: 2.5,
-              fill: true,
-              tension: 0.25,
-              pointBackgroundColor: "#047857"
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { x: { grid: { display: false } }, y: { grid: { color: "#f3f4f6" } } }
-          }
-        });
-      }
-    }
-
-    window.openMandiProfile = function(mandiId, mandiName, firmName, sourceType) {
-      const isMP = (sourceType === "MP_BOARD" || sourceType === "MANDI_OPERATOR");
-      document.getElementById("mandiProfileTitle").innerText = isMP ? `${mandiName} मंडी समिति` : (firmName || `${mandiName} मंडी`);
-      document.getElementById("mandiProfileMeta").innerText = `जिला: ${mandiName} | दैनिक बुलेटिन`;
-
-      const mandiRates = rates.filter(r => r.mandi_id == mandiId);
-      const listContainer = document.getElementById("mandiAllCropsList");
-
-      if (mandiRates.length === 0) {
-        listContainer.innerHTML = `<p class="text-xs text-gray-400 py-6 text-center bg-white rounded-xl">इस मंडी में कोई भाव दर्ज नहीं है।</p>`;
-      } else {
-        listContainer.innerHTML = mandiRates.map(r => `
-          <div class="bg-white p-3.5 rounded-xl border border-gray-100 shadow-sm space-y-1.5">
-            <div class="flex justify-between">
-              <span class="font-black text-sm text-gray-900">${r.crop_name}</span>
-              <span class="text-[10px] bg-gray-100 px-2 py-0.5 rounded font-mono">${r.price_date}</span>
-            </div>
-            <div class="grid grid-cols-3 gap-1 bg-gray-50 p-2 rounded text-center text-xs">
-              <div><span class="text-[9px] text-gray-400 block">न्यूनतम</span><strong>₹${r.price_min}</strong></div>
-              <div><span class="text-[9px] text-emerald-700 font-bold block">मॉडल</span><strong class="text-emerald-800 text-sm">₹${r.price_modal}</strong></div>
-              <div><span class="text-[9px] text-gray-400 block">अधिकतम</span><strong>₹${r.price_max}</strong></div>
-            </div>
-          </div>
-        `).join("");
-      }
-
-      switchView("view-mandi-profile", mandiName, "मंडी प्रोफाइल");
-    };
-
-    function switchView(viewId, title = null, sub = null) {
+    function switchView(viewId) {
       document.querySelectorAll(".page-view").forEach(el => el.classList.add("hidden"));
       document.getElementById(viewId)?.classList.remove("hidden");
       currentView = viewId;
 
-      const btnBack = document.getElementById("btnBack");
-      const titleEl = document.getElementById("topTitle");
-      const subEl = document.getElementById("topSub");
-      const searchWrap = document.getElementById("searchWrap");
-
-      if (viewId === "view-crop-profile" || viewId === "view-mandi-profile") {
-        btnBack.classList.remove("hidden");
-        titleEl.innerText = title || "विवरण";
-        subEl.innerText = sub || "मंडी नेटवर्क";
-        searchWrap.classList.add("hidden");
-      } else {
-        btnBack.classList.add("hidden");
-        titleEl.innerText = "🌾 डिजिटल कृषि मंडी";
-        subEl.innerText = "लाइव मंडी नीलामी व आढ़त भाव";
-        if (viewId === "view-home") searchWrap.classList.remove("hidden");
-        else searchWrap.classList.add("hidden");
-      }
-
       document.querySelectorAll(".nav-tab").forEach(b => {
         const target = b.id.replace("nav-btn-", "view-");
-        if (target === viewId) {
-          b.className = "nav-tab flex flex-col items-center text-emerald-800";
-          b.querySelector("span:last-child").className = "text-[10px] font-bold";
-        } else {
-          b.className = "nav-tab flex flex-col items-center text-gray-400";
-          b.querySelector("span:last-child").className = "text-[10px] font-medium";
-        }
+        b.className = (target === viewId) ? "nav-tab flex flex-col items-center text-emerald-800" : "nav-tab flex flex-col items-center text-gray-400";
       });
 
-      if (viewId === "view-compare") renderComparisonResult();
-      if (viewId === "view-trend") updateTrendChart();
-    }
-
-    window.goBackHome = function() { switchView("view-home"); };
-
-    function switchPublishPanel(type) {
-      document.querySelectorAll(".pub-panel").forEach(p => p.classList.add("hidden"));
-      document.getElementById(type === 'mp' ? 'panel-mp-board' : 'panel-rj-adath')?.classList.remove("hidden");
-
-      document.getElementById('tab-pnl-mp').className = type === 'mp' ? "py-2 rounded-lg bg-emerald-800 text-white shadow-sm text-center font-bold" : "py-2 rounded-lg text-gray-700 text-center font-medium";
-      document.getElementById('tab-pnl-rj').className = type === 'rj' ? "py-2 rounded-lg bg-emerald-800 text-white shadow-sm text-center font-bold" : "py-2 rounded-lg text-gray-700 text-center font-medium";
-    }
-
-    // Comparison Logic
-    function renderComparisonResult() {
-      const cropId = document.getElementById("compareCrop")?.value;
-      const m1 = document.getElementById("compareM1")?.value;
-      const m2 = document.getElementById("compareM2")?.value;
-      const container = document.getElementById("compareResultContainer");
-      const banner = document.getElementById("compareDiffBanner");
-      if (!container || !cropId) return;
-
-      const r1 = rates.find(r => r.commodity_id == cropId && r.mandi_id == m1);
-      const r2 = rates.find(r => r.commodity_id == cropId && r.mandi_id == m2);
-
-      const m1Obj = mandis.find(x => x.id == m1) || { name: "मंडी 1" };
-      const m2Obj = mandis.find(x => x.id == m2) || { name: "मंडी 2" };
-
-      if (r1 && r2) {
-        const diff = Math.abs(r1.price_modal - r2.price_modal);
-        const higher = r1.price_modal > r2.price_modal ? m1Obj.name : m2Obj.name;
-        banner.innerHTML = `
-          <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl text-center">
-            <span class="text-xs text-gray-600 block">मॉडल भाव में अंतर</span>
-            <span class="text-sm font-extrabold text-emerald-800">${higher} में ₹${diff}/क्विंटल अधिक भाव मिल रहा है</span>
-          </div>`;
-      } else {
-        banner.innerHTML = "";
-      }
-
-      container.innerHTML = `
-        <div class="grid grid-cols-2 gap-2 mt-2">
-          <div class="bg-white p-3 rounded-xl border text-center shadow-sm">
-            <h4 class="font-bold text-xs text-gray-900">${m1Obj.name}</h4>
-            ${r1 ? `
-              <p class="text-lg font-extrabold text-emerald-700 mt-1">₹${r1.price_modal}</p>
-              <p class="text-[10px] text-gray-600 mt-1 font-semibold">₹${r1.price_min} - ₹${r1.price_max}</p>
-            ` : `<p class="text-xs text-gray-400 py-6">भाव उपलब्ध नहीं</p>`}
-          </div>
-          <div class="bg-white p-3 rounded-xl border text-center shadow-sm">
-            <h4 class="font-bold text-xs text-gray-900">${m2Obj.name}</h4>
-            ${r2 ? `
-              <p class="text-lg font-extrabold text-emerald-700 mt-1">₹${r2.price_modal}</p>
-              <p class="text-[10px] text-gray-600 mt-1 font-semibold">₹${r2.price_min} - ₹${r2.price_max}</p>
-            ` : `<p class="text-xs text-gray-400 py-6">भाव उपलब्ध नहीं</p>`}
-          </div>
-        </div>`;
-    }
-
-    // Trend Logic
-    function setTrendDays(days) {
-      trendDays = days;
-      [7, 30, 90].forEach(d => {
-        document.getElementById(`btn-t${d}`).className = (d === days)
-          ? "trend-tbtn bg-emerald-700 text-white px-3 py-1 rounded font-bold"
-          : "trend-tbtn bg-gray-100 text-gray-700 px-3 py-1 rounded font-medium";
-      });
-      updateTrendChart();
-    }
-
-    async function updateTrendChart() {
-      const mId = document.getElementById("trendMandi")?.value;
-      const cId = document.getElementById("trendCrop")?.value;
-      if (!mId || !cId) return;
-
-      const rows = await sqlQuery(`
-        SELECT 
-          price_date, 
-          ROUND(AVG(price_modal)) as price_modal, 
-          MIN(price_min) as price_min, 
-          MAX(price_max) as price_max
-        FROM price_records 
-        WHERE mandi_id = ${mId} AND commodity_id = ${cId}
-        GROUP BY price_date
-        ORDER BY price_date DESC LIMIT ${trendDays};
-      `);
-
-      const dataPoints = (rows && rows.length > 0) ? [...rows].reverse() : [];
-      const ctx = document.getElementById("trendChartCanvas")?.getContext("2d");
-      if (chartInstance) chartInstance.destroy();
-
-      if (window.Chart && ctx) {
-        chartInstance = new Chart(ctx, {
-          type: "line",
-          data: {
-            labels: dataPoints.map(d => String(d.price_date).slice(-5)),
-            datasets: [{
-              label: "मॉडल भाव (₹)",
-              data: dataPoints.map(d => d.price_modal),
-              borderColor: "#047857",
-              backgroundColor: "rgba(4, 120, 87, 0.1)",
-              borderWidth: 2.5,
-              fill: true,
-              tension: 0.25,
-              pointBackgroundColor: "#047857"
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { x: { grid: { display: false } }, y: { grid: { color: "#f3f4f6" } } }
-          }
-        });
-      }
-
-      const tbody = document.getElementById("trendTableBody");
-      document.getElementById("trendHistoryBadge").innerText = `${dataPoints.length} कार्यदिवस`;
-      const descList = [...dataPoints].reverse();
-
-      tbody.innerHTML = descList.map((d, index) => {
-        let diffBadge = `-`;
-        if (index < descList.length - 1) {
-          const change = d.price_modal - descList[index + 1].price_modal;
-          diffBadge = change > 0 ? `<span class="text-emerald-700 font-bold">▲ +₹${change}</span>` : change < 0 ? `<span class="text-red-600 font-bold">▼ ₹${change}</span>` : `स्थिर`;
-        }
-        return `
-          <tr class="hover:bg-gray-50">
-            <td class="p-2 font-bold">${d.price_date}</td>
-            <td class="p-2 text-gray-600">₹${d.price_min}</td>
-            <td class="p-2 font-black text-emerald-800">₹${d.price_modal}</td>
-            <td class="p-2 text-gray-600">₹${d.price_max}</td>
-            <td class="p-2">${diffBadge}</td>
-          </tr>`;
-      }).join("");
+      if (viewId === "view-entry") updateAuthWall();
     }
   </script>
 </body>
