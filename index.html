@@ -13,74 +13,138 @@
     body { -webkit-tap-highlight-color: transparent; }
   </style>
 </head>
-<body class="bg-gray-100 text-gray-900 pb-20 select-none font-sans">
+<body class="bg-gray-100 text-gray-900 pb-24 select-none font-sans">
 
   <!-- Header -->
   <header class="bg-emerald-800 text-white sticky top-0 z-50 shadow-md">
     <div class="px-4 py-3 flex justify-between items-center">
       <div class="flex items-center gap-2">
-        <button id="btnBack" class="hidden text-xl font-bold pr-1">←</button>
+        <button id="btnBack" onclick="goBack()" class="hidden text-xl font-bold pr-1">←</button>
         <div>
           <h1 id="topTitle" class="text-base font-bold leading-tight">🌾 डिजिटल कृषि मंडी</h1>
-          <p id="topSub" class="text-[10px] text-emerald-200">लाइव नीलामी भाव, व्यापारी दरें व रिपोर्ट</p>
+          <p id="topSub" class="text-[10px] text-emerald-200">सरकारी नीलामी भाव व व्यापारी खरीद दरें</p>
         </div>
       </div>
-      <input type="date" id="globalDate" class="bg-emerald-900 text-white text-xs px-2 py-1 rounded border border-emerald-700 outline-none" />
+      <input type="date" id="globalDate" onchange="loadData()" class="bg-emerald-900 text-white text-xs px-2 py-1 rounded border border-emerald-700 outline-none" />
     </div>
 
-    <!-- Live Search & Mandi Filter -->
-    <div id="searchSection" class="px-4 pb-2.5 space-y-2">
+    <!-- Search Bar -->
+    <div id="searchWrap" class="px-4 pb-2.5">
       <div class="relative">
-        <input type="text" id="mandiSearchInput" placeholder="फसल, मंडी या व्यापारी खोजें..." 
+        <input type="text" id="globalSearch" oninput="renderCurrentView()" placeholder="फसल, मंडी या व्यापारी खोजें..." 
           class="w-full bg-white text-gray-800 text-xs px-3 py-2 pl-8 rounded-lg shadow-inner outline-none" />
         <span class="absolute left-2.5 top-2 text-gray-400 text-xs">🔍</span>
-      </div>
-      <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar text-xs" id="dynamicMandiPills">
-        <button class="mandi-pill bg-emerald-700 text-white font-bold px-3 py-1 rounded-full shadow-sm whitespace-nowrap" data-id="all">सभी मंडियां</button>
       </div>
     </div>
   </header>
 
-  <!-- 1. होम स्क्रीन (लाइव भाव) -->
+  <!-- ================= SCREEN 1: HOME (मुख्य भाव) ================= -->
   <section id="view-home" class="page-view p-3 space-y-3">
-    <div id="homeCardContainer" class="space-y-2.5">
-      <div class="text-center py-12 text-gray-400 text-xs">भाव लोड हो रहे हैं...</div>
+    <!-- Mandi Filter Chips -->
+    <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar text-xs" id="mandiChips"></div>
+
+    <!-- Live Rates Cards -->
+    <div id="ratesContainer" class="space-y-2.5">
+      <div class="text-center py-10 text-gray-400 text-xs">डेटा लोड हो रहा है...</div>
     </div>
   </section>
 
-  <!-- 2. ट्रेंड व ग्राफ स्क्रीन -->
+  <!-- ================= SCREEN 2: MANDI DIRECTORY (मंडी सूची) ================= -->
+  <section id="view-mandis" class="page-view p-3 space-y-3 hidden">
+    <div class="flex justify-between items-center">
+      <h2 class="text-sm font-bold text-gray-800">राज्य व जिलेवार मंडियां</h2>
+      <span class="text-xs text-gray-500" id="mandiCount"></span>
+    </div>
+    <div id="mandiListContainer" class="space-y-2"></div>
+  </section>
+
+  <!-- ================= SCREEN 3: MANDI DETAIL (शामगढ़ मंडी आदि) ================= -->
+  <section id="view-mandi-detail" class="page-view p-3 space-y-3 hidden">
+    <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-emerald-600">
+      <h2 id="mandiDetailTitle" class="text-base font-bold text-gray-900">मंडी विवरण</h2>
+      <p id="mandiDetailMeta" class="text-xs text-gray-500">जिला व स्थिति</p>
+    </div>
+
+    <!-- Tabs: Govt Auction vs Trader Offer -->
+    <div class="flex bg-gray-200 p-1 rounded-lg text-xs font-bold">
+      <button onclick="setDetailSourceFilter('ALL')" id="tab-src-all" class="flex-1 py-1.5 rounded-md bg-white text-emerald-800 shadow-sm text-center">सभी भाव</button>
+      <button onclick="setDetailSourceFilter('MANDI_OPERATOR')" id="tab-src-govt" class="flex-1 py-1.5 rounded-md text-gray-600 text-center">सरकारी नीलामी</button>
+      <button onclick="setDetailSourceFilter('TRADER')" id="tab-src-trader" class="flex-1 py-1.5 rounded-md text-gray-600 text-center">व्यापारी खरीद</button>
+    </div>
+
+    <div id="mandiCropsContainer" class="space-y-2.5"></div>
+  </section>
+
+  <!-- ================= SCREEN 4: CROP DETAIL (सोयाबीन आदि) ================= -->
+  <section id="view-crop-detail" class="page-view p-3 space-y-3 hidden">
+    <div class="bg-white p-4 rounded-xl shadow-sm border-l-4 border-amber-500">
+      <h2 id="cropDetailTitle" class="text-base font-bold text-gray-900">फसल विवरण</h2>
+      <p class="text-xs text-gray-500">अलग-अलग मंडियों में आज का तुलनात्मक भाव</p>
+    </div>
+    <div id="cropMandisContainer" class="space-y-2.5"></div>
+  </section>
+
+  <!-- ================= SCREEN 5: COMPARISON (शामगढ़ vs भवानीमंडी) ================= -->
+  <section id="view-compare" class="page-view p-3 space-y-3 hidden">
+    <div class="bg-white p-4 rounded-xl shadow-sm space-y-3">
+      <h2 class="text-sm font-bold text-gray-800 flex items-center gap-1.5">
+        <span>⚖️</span> दो मंडियों की आमने-सामने तुलना
+      </h2>
+      <div class="space-y-2 text-xs">
+        <div>
+          <label class="font-semibold text-gray-600">फसल चुनें</label>
+          <select id="compareCrop" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg outline-none font-medium"></select>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-semibold text-gray-600">मंडी 1</label>
+            <select id="compareM1" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg outline-none"></select>
+          </div>
+          <div>
+            <label class="font-semibold text-gray-600">मंडी 2</label>
+            <select id="compareM2" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg outline-none"></select>
+          </div>
+        </div>
+        <button onclick="renderComparisonResult()" class="w-full bg-emerald-700 text-white font-bold py-2 rounded-lg shadow-sm mt-1">
+          तुलना देखें
+        </button>
+      </div>
+    </div>
+    <div id="compareResult" class="space-y-2"></div>
+  </section>
+
+  <!-- ================= SCREEN 6: TREND & GRAPH (7 दिन से 1 वर्ष) ================= -->
   <section id="view-trend" class="page-view p-3 space-y-3 hidden">
-    <div class="bg-white p-4 rounded-xl shadow-sm space-y-3 border border-gray-100">
+    <div class="bg-white p-4 rounded-xl shadow-sm space-y-3">
       <h2 class="text-sm font-bold text-gray-800 flex items-center gap-1.5">
         <span>📈</span> फसल का ऐतिहासिक ट्रेंड व ग्राफ
       </h2>
       <div class="grid grid-cols-2 gap-2 text-xs">
         <div>
-          <label class="text-gray-500 font-semibold">मंडी</label>
-          <select id="trendMandiSelect" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg outline-none font-medium"></select>
+          <label class="font-semibold text-gray-600">मंडी</label>
+          <select id="trendMandi" onchange="updateTrendChart()" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg"></select>
         </div>
         <div>
-          <label class="text-gray-500 font-semibold">फसल</label>
-          <select id="trendCropSelect" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg outline-none font-medium"></select>
+          <label class="font-semibold text-gray-600">फसल</label>
+          <select id="trendCrop" onchange="updateTrendChart()" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg"></select>
         </div>
       </div>
 
-      <!-- टाइमफ्रेम बटन -->
+      <!-- Timeframe selector -->
       <div class="flex gap-2 justify-center pt-1 text-xs">
-        <button onclick="window.loadTrendData(7)" class="trend-btn bg-emerald-700 text-white px-3 py-1 rounded-md font-bold">7 दिन</button>
-        <button onclick="window.loadTrendData(30)" class="trend-btn bg-gray-100 text-gray-700 px-3 py-1 rounded-md font-medium">30 दिन</button>
-        <button onclick="window.loadTrendData(90)" class="trend-btn bg-gray-100 text-gray-700 px-3 py-1 rounded-md font-medium">3 माह</button>
-        <button onclick="window.loadTrendData(365)" class="trend-btn bg-gray-100 text-gray-700 px-3 py-1 rounded-md font-medium">1 वर्ष</button>
+        <button onclick="setTrendDays(7)" id="btn-t7" class="trend-tbtn bg-emerald-700 text-white px-3 py-1 rounded font-bold">7 दिन</button>
+        <button onclick="setTrendDays(30)" id="btn-t30" class="trend-tbtn bg-gray-100 text-gray-700 px-3 py-1 rounded font-medium">30 दिन</button>
+        <button onclick="setTrendDays(90)" id="btn-t90" class="trend-tbtn bg-gray-100 text-gray-700 px-3 py-1 rounded font-medium">3 माह</button>
+        <button onclick="setTrendDays(365)" id="btn-t365" class="trend-tbtn bg-gray-100 text-gray-700 px-3 py-1 rounded font-medium">1 साल</button>
       </div>
 
-      <!-- ग्राफ कैनवास -->
-      <div class="h-64 relative w-full pt-2">
-        <canvas id="trendCanvas"></canvas>
+      <div class="h-60 relative w-full pt-1">
+        <canvas id="trendChartCanvas"></canvas>
       </div>
     </div>
 
-    <!-- हिस्ट्री टेबल -->
-    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+    <!-- Datewise History Table -->
+    <div class="bg-white p-4 rounded-xl shadow-sm">
       <h3 class="text-xs font-bold text-gray-700 mb-2">तारीखवार पुराना रिकॉर्ड</h3>
       <div class="overflow-x-auto">
         <table class="w-full text-[11px] text-left">
@@ -93,42 +157,38 @@
               <th class="p-2">आवक</th>
             </tr>
           </thead>
-          <tbody id="historyTableBody" class="divide-y divide-gray-100"></tbody>
+          <tbody id="trendTableBody" class="divide-y divide-gray-100"></tbody>
         </table>
       </div>
     </div>
   </section>
 
-  <!-- 3. समाचार स्क्रीन -->
-  <section id="view-news" class="page-view p-3 space-y-3 hidden">
-    <div class="flex justify-between items-center">
-      <h2 class="text-sm font-bold text-gray-800">दैनिक मंडी बुलेटिन व समीक्षा</h2>
-      <span class="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-bold">पत्रकार नेटवर्क</span>
-    </div>
-    <div id="newsContainer" class="space-y-3"></div>
-  </section>
-
-  <!-- 4. एंट्री पैनल्स -->
+  <!-- ================= SCREEN 7: DATA ENTRY PANELS (व्यापारी, कर्मचारी, पत्रकार) ================= -->
   <section id="view-entry" class="page-view p-3 space-y-3 hidden">
-    <!-- पैनल स्विच टैब्स -->
+    <!-- Panel Selection Tabs -->
     <div class="flex bg-gray-200 p-1 rounded-xl text-xs font-bold text-gray-600">
-      <button onclick="window.switchEntryPanel('operator')" id="p-tab-operator" class="flex-1 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm text-center">मंडी कर्मचारी</button>
-      <button onclick="window.switchEntryPanel('trader')" id="p-tab-trader" class="flex-1 py-1.5 rounded-lg text-center">व्यापारी खरीद</button>
-      <button onclick="window.switchEntryPanel('reporter')" id="p-tab-reporter" class="flex-1 py-1.5 rounded-lg text-center">पत्रकार न्यूज़</button>
-      <button onclick="window.switchEntryPanel('master')" id="p-tab-master" class="flex-1 py-1.5 rounded-lg text-center">नई मंडी/फसल</button>
+      <button onclick="switchSubPanel('operator')" id="sub-btn-operator" class="flex-1 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm text-center">मंडी कर्मचारी</button>
+      <button onclick="switchSubPanel('trader')" id="sub-btn-trader" class="flex-1 py-1.5 rounded-lg text-center">व्यापारी खरीद</button>
+      <button onclick="switchSubPanel('reporter')" id="sub-btn-reporter" class="flex-1 py-1.5 rounded-lg text-center">पत्रकार रिपोर्ट</button>
+      <button onclick="switchSubPanel('master')" id="sub-btn-master" class="flex-1 py-1.5 rounded-lg text-center">नई फसल/मंडी</button>
     </div>
 
-    <!-- 4A. मंडी कर्मचारी पैनल -->
-    <div id="subpanel-operator" class="entry-subpanel bg-white p-4 rounded-xl shadow-sm space-y-3">
-      <h3 class="text-xs font-bold text-emerald-800 uppercase tracking-wide">मंडी नीलामी भाव दर्ज करें (Official)</h3>
-      <form id="operatorForm" onsubmit="window.submitOperatorRate(event)" class="space-y-2.5 text-xs">
-        <div>
-          <label class="font-semibold text-gray-600">मंडी चुनें</label>
-          <select id="opMandi" required class="w-full mt-1 p-2 bg-gray-50 border rounded-lg"></select>
-        </div>
-        <div>
-          <label class="font-semibold text-gray-600">फसल चुनें</label>
-          <select id="opCrop" required class="w-full mt-1 p-2 bg-gray-50 border rounded-lg"></select>
+    <!-- 1. MANDI OPERATOR PANEL -->
+    <div id="subpanel-operator" class="subpanel bg-white p-4 rounded-xl shadow-sm space-y-3">
+      <div class="border-b pb-2">
+        <h3 class="text-xs font-bold text-emerald-800 uppercase">सरकारी मंडी नीलामी भाव प्रविष्टि</h3>
+        <p class="text-[10px] text-gray-400">दैनिक न्यूनतम, मॉडल, अधिकतम व कुल आवक दर्ज करें</p>
+      </div>
+      <form onsubmit="submitOperatorForm(event)" class="space-y-2.5 text-xs">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-semibold text-gray-600">मंडी</label>
+            <select id="opMandi" required class="w-full mt-1 p-2 bg-gray-50 border rounded-lg"></select>
+          </div>
+          <div>
+            <label class="font-semibold text-gray-600">फसल</label>
+            <select id="opCrop" required class="w-full mt-1 p-2 bg-gray-50 border rounded-lg"></select>
+          </div>
         </div>
         <div class="grid grid-cols-3 gap-2">
           <div>
@@ -145,20 +205,25 @@
           </div>
         </div>
         <div>
-          <label class="font-semibold text-gray-600">आवक (बोरी में)</label>
-          <input type="number" id="opArrival" placeholder="उदा. 800" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
+          <label class="font-semibold text-gray-600">कुल आवक (बोरी में)</label>
+          <input type="number" id="opArrival" placeholder="उदा. 450" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
         </div>
-        <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-lg shadow mt-1">नीलामी भाव सबमिट करें</button>
+        <button type="submit" class="w-full bg-emerald-700 text-white font-bold py-2.5 rounded-lg shadow mt-1">
+          नीलामी भाव प्रकाशित करें
+        </button>
       </form>
     </div>
 
-    <!-- 4B. व्यापारी पैनल -->
-    <div id="subpanel-trader" class="entry-subpanel bg-white p-4 rounded-xl shadow-sm space-y-3 hidden">
-      <h3 class="text-xs font-bold text-blue-800 uppercase tracking-wide">व्यापारी खरीद भाव</h3>
-      <form id="traderForm" onsubmit="window.submitTraderRate(event)" class="space-y-2.5 text-xs">
+    <!-- 2. TRADER PANEL -->
+    <div id="subpanel-trader" class="subpanel bg-white p-4 rounded-xl shadow-sm space-y-3 hidden">
+      <div class="border-b pb-2">
+        <h3 class="text-xs font-bold text-blue-800 uppercase">व्यापारी खरीद कोटेशन</h3>
+        <p class="text-[10px] text-gray-400">अपनी फर्म का नाम व क्वालिटी अनुसार खरीद रेट डालें</p>
+      </div>
+      <form onsubmit="submitTraderForm(event)" class="space-y-2.5 text-xs">
         <div>
-          <label class="font-semibold text-gray-600">व्यापारी फर्म / दुकान का नाम</label>
-          <input type="text" id="traderFirm" required placeholder="उदा. माँ भवानी ट्रेडिंग कंपनी" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
+          <label class="font-semibold text-gray-600">फर्म / दुकान का नाम</label>
+          <input type="text" id="traderFirm" required placeholder="उदा. महावीर ट्रेडिंग कंपनी" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
@@ -174,30 +239,36 @@
           <label class="font-semibold text-gray-600">क्वालिटी ग्रेड</label>
           <select id="traderQuality" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg">
             <option value="बोल्ड क्लीन (Best)">बोल्ड क्लीन (Best)</option>
-            <option value="एवरेज / मीडियम">एवरेज / मीडियम</option>
+            <option value="सुपर / एवरेज">सुपर / एवरेज</option>
+            <option value="मीडियम">मीडियम</option>
             <option value="हल्का / दागी माल">हल्का / दागी माल</option>
           </select>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="font-semibold text-gray-600">न्यूनतम खरीद (₹)</label>
-            <input type="number" id="traderMin" required placeholder="4700" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
+            <label class="font-semibold text-gray-600">न्यूनतम रेट (₹)</label>
+            <input type="number" id="traderMin" required placeholder="4650" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
           </div>
           <div>
-            <label class="font-semibold text-gray-600">अधिकतम खरीद (₹)</label>
-            <input type="number" id="traderMax" required placeholder="4950" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
+            <label class="font-semibold text-gray-600">अधिकतम रेट (₹)</label>
+            <input type="number" id="traderMax" required placeholder="4900" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
           </div>
         </div>
-        <button type="submit" class="w-full bg-blue-700 text-white font-bold py-2.5 rounded-lg shadow mt-1">व्यापारी रेट पोस्ट करें</button>
+        <button type="submit" class="w-full bg-blue-700 text-white font-bold py-2.5 rounded-lg shadow mt-1">
+          व्यापारी रेट पोस्ट करें
+        </button>
       </form>
     </div>
 
-    <!-- 4C. पत्रकार न्यूज़ पैनल -->
-    <div id="subpanel-reporter" class="entry-subpanel bg-white p-4 rounded-xl shadow-sm space-y-3 hidden">
-      <h3 class="text-xs font-bold text-amber-800 uppercase tracking-wide">मंडी रिपोर्ट / समीक्षा लिखें</h3>
-      <form id="reporterForm" onsubmit="window.submitNewsReport(event)" class="space-y-2.5 text-xs">
+    <!-- 3. JOURNALIST PANEL -->
+    <div id="subpanel-reporter" class="subpanel bg-white p-4 rounded-xl shadow-sm space-y-3 hidden">
+      <div class="border-b pb-2">
+        <h3 class="text-xs font-bold text-amber-800 uppercase">पत्रकार मंडी समाचार व समीक्षा</h3>
+        <p class="text-[10px] text-gray-400">बाजार की चाल, तेजी-मंदी व विशेष रिपोर्ट प्रकाशित करें</p>
+      </div>
+      <form onsubmit="submitReporterForm(event)" class="space-y-2.5 text-xs">
         <div>
-          <label class="font-semibold text-gray-600">पत्रकार / रिपोर्टर का नाम</label>
+          <label class="font-semibold text-gray-600">पत्रकार का नाम</label>
           <input type="text" id="repName" required placeholder="आपका नाम" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
         </div>
         <div class="grid grid-cols-2 gap-2">
@@ -215,39 +286,40 @@
           </div>
         </div>
         <div>
-          <label class="font-semibold text-gray-600">शीर्षक (Headline)</label>
+          <label class="font-semibold text-gray-600">शीर्षक</label>
           <input type="text" id="repTitle" required placeholder="उदा. लहसुन में ₹500 का उछाल" class="w-full mt-1 p-2 bg-gray-50 border rounded-lg" />
         </div>
         <div>
-          <label class="font-semibold text-gray-600">विस्तृत रिपोर्ट</label>
-          <textarea id="repContent" required rows="3" placeholder="आज मंडी में ग्राहकी जोरदार रही..." class="w-full mt-1 p-2 bg-gray-50 border rounded-lg"></textarea>
+          <label class="font-semibold text-gray-600">समीक्षा रिपोर्ट</label>
+          <textarea id="repText" required rows="3" placeholder="आज मंडी में ग्राहकी जोरदार रही..." class="w-full mt-1 p-2 bg-gray-50 border rounded-lg"></textarea>
         </div>
-        <button type="submit" class="w-full bg-amber-700 text-white font-bold py-2.5 rounded-lg shadow mt-1">समाचार प्रकाशित करें</button>
+        <button type="submit" class="w-full bg-amber-700 text-white font-bold py-2.5 rounded-lg shadow mt-1">
+          समाचार प्रकाशित करें
+        </button>
       </form>
     </div>
 
-    <!-- 4D. नई मंडी व फसल जोड़ने का पैनल -->
-    <div id="subpanel-master" class="entry-subpanel bg-white p-4 rounded-xl shadow-sm space-y-4 hidden">
+    <!-- 4. MASTER ADD NEW PANEL -->
+    <div id="subpanel-master" class="subpanel bg-white p-4 rounded-xl shadow-sm space-y-4 hidden">
       <div>
         <h4 class="text-xs font-bold text-gray-800 mb-1">➕ नई मंडी जोड़ें</h4>
-        <form onsubmit="window.addNewMandi(event)" class="space-y-2 text-xs">
+        <form onsubmit="submitNewMandi(event)" class="space-y-2 text-xs">
           <input type="text" id="newMandiName" placeholder="मंडी का नाम (उदा. जावरा)" required class="w-full p-2 bg-gray-50 border rounded-lg" />
           <input type="text" id="newMandiDistrict" placeholder="जिला (उदा. रतलाम)" required class="w-full p-2 bg-gray-50 border rounded-lg" />
           <button type="submit" class="w-full bg-gray-800 text-white font-bold py-2 rounded-lg">मंडी सेव करें</button>
         </form>
       </div>
-      <hr class="border-gray-200" />
+      <hr />
       <div>
-        <h4 class="text-xs font-bold text-gray-800 mb-1">➕ नई फसल जोड़ें</h4>
-        <form onsubmit="window.addNewCommodity(event)" class="space-y-2 text-xs">
-          <input type="text" id="newCropName" placeholder="फसल का नाम (उदा. इसबगोल)" required class="w-full p-2 bg-gray-50 border rounded-lg" />
+        <h4 class="text-xs font-bold text-gray-800 mb-1">➕ नई फसल जोड़ें (असीमित)</h4>
+        <form onsubmit="submitNewCrop(event)" class="space-y-2 text-xs">
+          <input type="text" id="newCropName" placeholder="फसल का नाम हिंदी में (उदा. इसबगोल)" required class="w-full p-2 bg-gray-50 border rounded-lg" />
           <select id="newCropCat" class="w-full p-2 bg-gray-50 border rounded-lg">
             <option value="अनाज">अनाज</option>
             <option value="दलहन">दलहन</option>
             <option value="तिलहन">तिलहन</option>
             <option value="मसाला">मसाला</option>
             <option value="सब्जी">सब्जी</option>
-            <option value="फल">फल</option>
             <option value="अन्य">अन्य</option>
           </select>
           <button type="submit" class="w-full bg-emerald-800 text-white font-bold py-2 rounded-lg">फसल सेव करें</button>
@@ -256,26 +328,605 @@
     </div>
   </section>
 
-  <!-- बॉटम नेविगेशन बार -->
+  <!-- ================= BOTTOM NAVIGATION BAR ================= -->
   <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around py-2 z-50 shadow-2xl">
-    <button onclick="window.switchTab('view-home')" id="tab-btn-home" class="nav-btn flex flex-col items-center text-emerald-800">
+    <button onclick="switchView('view-home')" id="nav-btn-home" class="nav-tab flex flex-col items-center text-emerald-800">
       <span class="text-lg">🏠</span>
-      <span class="text-[10px] font-bold">मंडी भाव</span>
+      <span class="text-[10px] font-bold">होम</span>
     </button>
-    <button onclick="window.switchTab('view-trend')" id="tab-btn-trend" class="nav-btn flex flex-col items-center text-gray-400">
+    <button onclick="switchView('view-mandis')" id="nav-btn-mandis" class="nav-tab flex flex-col items-center text-gray-400">
+      <span class="text-lg">🏛️</span>
+      <span class="text-[10px] font-medium">मंडी सूची</span>
+    </button>
+    <button onclick="switchView('view-compare')" id="nav-btn-compare" class="nav-tab flex flex-col items-center text-gray-400">
+      <span class="text-lg">⚖️</span>
+      <span class="text-[10px] font-medium">तुलना</span>
+    </button>
+    <button onclick="switchView('view-trend')" id="nav-btn-trend" class="nav-tab flex flex-col items-center text-gray-400">
       <span class="text-lg">📈</span>
       <span class="text-[10px] font-medium">ट्रेंड/ग्राफ</span>
     </button>
-    <button onclick="window.switchTab('view-news')" id="tab-btn-news" class="nav-btn flex flex-col items-center text-gray-400">
-      <span class="text-lg">📰</span>
-      <span class="text-[10px] font-medium">समाचार</span>
-    </button>
-    <button onclick="window.switchTab('view-entry')" id="tab-btn-entry" class="nav-btn flex flex-col items-center text-gray-400">
+    <button onclick="switchView('view-entry')" id="nav-btn-entry" class="nav-tab flex flex-col items-center text-gray-400">
       <span class="text-lg">✍️</span>
       <span class="text-[10px] font-medium">एंट्री पैनल</span>
     </button>
   </nav>
 
-  <script type="module" src="app.js"></script>
+  <!-- ================= APP ENGINE SCRIPT ================= -->
+  <script>
+    // Turso Database Config
+    const TURSO_URL = "https://mpmandi-govindaala.aws-ap-south-1.turso.io/v2/pipeline";
+    const TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3ODk2MTQwMzksImlkIjoiMDFhMGFkNGUtZDEwMS03M2ViLTlhMjEtZDA3MWIyNDU1MmJiIiwia2lkIjoiV0JkNlJ2dHFndUYtOHV1R2tnT0xSWWREU0lCaGVOem8xVy1QNXhBWkNVVSIsInJpZCI6IjdjY2JmYTI2LWNiYTgtNGUxOS04Njc3LWU0YTdlMGVhYTRmMyJ9.rtHnUY5poOSfygQDiQnHUDYNMZXpaMZoqEJnwy6YmIbWeAVdvIZbhfOXLgAPhS4kMEuGWtFL2Smpgo5rt6VXAQ";
+
+    // Fast HTTP SQL Query
+    async function sqlQuery(sql) {
+      try {
+        const res = await fetch(TURSO_URL, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${TURSO_TOKEN}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            requests: [
+              { type: "execute", stmt: { sql } },
+              { type: "close" }
+            ]
+          })
+        });
+        const data = await res.json();
+        if (data.results && data.results[0] && data.results[0].type === "ok") {
+          const r = data.results[0].response.result;
+          const cols = r.cols.map(c => c.name);
+          return r.rows.map(row => {
+            const obj = {};
+            row.forEach((cell, i) => { obj[cols[i]] = cell.value; });
+            return obj;
+          });
+        }
+        return [];
+      } catch (err) {
+        console.warn("SQL Fetch Error, using cache:", err);
+        return null;
+      }
+    }
+
+    // Default Seed Data
+    let mandis = [
+      { id: 1, name: "शामगढ़", district: "मंदसौर", state: "मध्य प्रदेश" },
+      { id: 2, name: "मंदसौर", district: "मंदसौर", state: "मध्य प्रदेश" },
+      { id: 3, name: "भवानीमंडी", district: "झालावाड़", state: "राजस्थान" },
+      { id: 4, name: "नीमच", district: "नीमच", state: "मध्य प्रदेश" },
+      { id: 5, name: "रतलाम", district: "रतलाम", state: "मध्य प्रदेश" }
+    ];
+
+    let crops = [
+      { id: 1, name_hi: "सोयाबीन", category: "तिलहन" },
+      { id: 2, name_hi: "गेहूं", category: "अनाज" },
+      { id: 3, name_hi: "लहसुन", category: "मसाला" },
+      { id: 4, name_hi: "चना", category: "दलहन" },
+      { id: 5, name_hi: "सरसों", category: "तिलहन" }
+    ];
+
+    let rates = [
+      { id: 1, mandi_id: 1, commodity_id: 1, mandi_name: "शामगढ़", crop_name: "सोयाबीन", source_type: "MANDI_OPERATOR", firm_name: "", quality_grade: "", price_min: 4400, price_max: 4850, price_modal: 4650, arrival_quantity: 450, price_date: "2026-09-17" },
+      { id: 2, mandi_id: 1, commodity_id: 2, mandi_name: "शामगढ़", crop_name: "गेहूं", source_type: "MANDI_OPERATOR", firm_name: "", quality_grade: "", price_min: 2400, price_max: 2900, price_modal: 2650, arrival_quantity: 320, price_date: "2026-09-17" },
+      { id: 3, mandi_id: 3, commodity_id: 1, mandi_name: "भवानीमंडी", crop_name: "सोयाबीन", source_type: "TRADER", firm_name: "माँ भवानी ट्रेडर्स", quality_grade: "बोल्ड क्लीन (Best)", price_min: 4600, price_max: 4950, price_modal: 4775, arrival_quantity: 0, price_date: "2026-09-17" },
+      { id: 4, mandi_id: 2, commodity_id: 3, mandi_name: "मंदसौर", crop_name: "लहसुन", source_type: "MANDI_OPERATOR", firm_name: "", quality_grade: "", price_min: 7500, price_max: 18500, price_modal: 13000, arrival_quantity: 1200, price_date: "2026-09-17" }
+    ];
+
+    // State Variables
+    let currentView = "view-home";
+    let selectedMandiId = "all";
+    let detailMandiId = 1;
+    let detailCropName = "सोयाबीन";
+    let detailSourceFilter = "ALL";
+    let trendDays = 7;
+    let chartInstance = null;
+
+    // Startup
+    window.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("globalDate").value = new Date().toISOString().split("T")[0];
+      initApp();
+    });
+
+    async function initApp() {
+      populateDropdowns();
+      renderMandiChips();
+      renderRates();
+      renderMandisList();
+      renderComparisonResult();
+
+      // Background Fetch from Turso
+      const mRows = await sqlQuery("SELECT id, name, district, state FROM mandis WHERE is_active = 1 ORDER BY name ASC;");
+      if (mRows && mRows.length > 0) mandis = mRows;
+
+      const cRows = await sqlQuery("SELECT id, name_hi, category FROM commodities ORDER BY name_hi ASC;");
+      if (cRows && cRows.length > 0) crops = cRows;
+
+      populateDropdowns();
+      renderMandiChips();
+      renderMandisList();
+      await loadData();
+    }
+
+    async function loadData() {
+      const liveRates = await sqlQuery(`
+        SELECT p.*, m.name as mandi_name, c.name_hi as crop_name 
+        FROM price_records p
+        JOIN mandis m ON p.mandi_id = m.id
+        JOIN commodities c ON p.commodity_id = c.id
+        WHERE p.status = 'approved'
+        ORDER BY p.id DESC LIMIT 100;
+      `);
+
+      if (liveRates && liveRates.length > 0) {
+        rates = liveRates;
+      }
+      renderRates();
+      if (currentView === 'view-mandi-detail') openMandiDetail(detailMandiId);
+      if (currentView === 'view-crop-detail') openCropDetail(detailCropName);
+      if (currentView === 'view-compare') renderComparisonResult();
+      if (currentView === 'view-trend') updateTrendChart();
+    }
+
+    // Dropdown Populator
+    function populateDropdowns() {
+      const mandiSelects = ["compareM1", "compareM2", "trendMandi", "opMandi", "traderMandi", "repMandi"];
+      mandiSelects.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = mandis.map(m => `<option value="${m.id}">${m.name} (${m.district})</option>`).join("");
+      });
+
+      if (document.getElementById("compareM2")) document.getElementById("compareM2").value = mandis[1] ? mandis[1].id : 2;
+
+      const cropSelects = ["compareCrop", "trendCrop", "opCrop", "traderCrop"];
+      cropSelects.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = crops.map(c => `<option value="${c.id}">${c.name_hi} [${c.category}]</option>`).join("");
+      });
+    }
+
+    // Navigation & Views
+    function switchView(viewId, showBack = false, title = "🌾 डिजिटल कृषि मंडी", sub = "सरकारी नीलामी भाव व व्यापारी खरीद दरें") {
+      document.querySelectorAll(".page-view").forEach(el => el.classList.add("hidden"));
+      document.getElementById(viewId)?.classList.remove("hidden");
+      currentView = viewId;
+
+      document.getElementById("topTitle").innerText = title;
+      document.getElementById("topSub").innerText = sub;
+      document.getElementById("btnBack").classList.toggle("hidden", !showBack);
+
+      const searchWrap = document.getElementById("searchWrap");
+      if (viewId === "view-home" || viewId === "view-mandis") {
+        searchWrap.classList.remove("hidden");
+      } else {
+        searchWrap.classList.add("hidden");
+      }
+
+      // Nav Tab styling
+      document.querySelectorAll(".nav-tab").forEach(b => {
+        const target = b.id.replace("nav-btn-", "view-");
+        if (target === viewId) {
+          b.className = "nav-tab flex flex-col items-center text-emerald-800";
+          b.querySelector("span:last-child").className = "text-[10px] font-bold";
+        } else {
+          b.className = "nav-tab flex flex-col items-center text-gray-400";
+          b.querySelector("span:last-child").className = "text-[10px] font-medium";
+        }
+      });
+
+      if (viewId === "view-trend") updateTrendChart();
+    }
+
+    function goBack() {
+      switchView("view-home");
+    }
+
+    function renderCurrentView() {
+      if (currentView === "view-home") renderRates();
+      if (currentView === "view-mandis") renderMandisList();
+    }
+
+    // 1. Home Screen Logic
+    function renderMandiChips() {
+      const container = document.getElementById("mandiChips");
+      if (!container) return;
+      let html = `<button onclick="setMandiFilter('all')" class="mandi-chip bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-full shadow-sm whitespace-nowrap" data-id="all">सभी मंडियां</button>`;
+      mandis.forEach(m => {
+        html += `<button onclick="setMandiFilter(${m.id})" class="mandi-chip bg-white text-gray-700 px-3 py-1.5 rounded-full shadow-sm whitespace-nowrap" data-id="${m.id}">${m.name}</button>`;
+      });
+      container.innerHTML = html;
+    }
+
+    function setMandiFilter(id) {
+      selectedMandiId = id;
+      document.querySelectorAll(".mandi-chip").forEach(chip => {
+        if (chip.getAttribute("data-id") == id) {
+          chip.className = "mandi-chip bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-full shadow-sm whitespace-nowrap";
+        } else {
+          chip.className = "mandi-chip bg-white text-gray-700 px-3 py-1.5 rounded-full shadow-sm whitespace-nowrap";
+        }
+      });
+      renderRates();
+    }
+
+    function renderRates() {
+      const container = document.getElementById("ratesContainer");
+      const search = document.getElementById("globalSearch")?.value.trim().toLowerCase() || "";
+
+      const filtered = rates.filter(r => {
+        const matchM = selectedMandiId === "all" ? true : r.mandi_id == selectedMandiId;
+        const matchS = !search || r.crop_name.toLowerCase().includes(search) || r.mandi_name.toLowerCase().includes(search) || (r.firm_name && r.firm_name.toLowerCase().includes(search));
+        return matchM && matchS;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white p-8 rounded-xl text-center shadow-sm">
+            <span class="text-3xl">🌾</span>
+            <p class="text-gray-600 font-bold text-xs mt-2">कोई भाव दर्ज नहीं है</p>
+            <p class="text-gray-400 text-[11px] mt-1">अन्य मंडी चुनें या नीचे 'एंट्री पैनल' से नया भाव डालें</p>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(r => `
+        <div class="bg-white rounded-xl p-3.5 shadow-sm border border-gray-100 hover:shadow-md transition">
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <button onclick="openCropDetail('${r.crop_name}')" class="text-left">
+                <h3 class="text-base font-bold text-gray-900 flex items-center gap-1 hover:text-emerald-700">
+                  ${r.crop_name} <span class="text-[10px] text-gray-400">➔</span>
+                </h3>
+              </button>
+              <button onclick="openMandiDetail(${r.mandi_id})" class="text-left">
+                <p class="text-xs text-emerald-700 font-medium hover:underline">
+                  📍 ${r.mandi_name} मंडी | आवक: ${r.arrival_quantity || '0'} बोरी
+                </p>
+              </button>
+              ${r.firm_name ? `<p class="text-[11px] text-blue-800 font-semibold mt-0.5">🏪 ${r.firm_name} (${r.quality_grade || 'कोटेशन'})</p>` : ''}
+            </div>
+            <span class="text-[9px] px-2 py-0.5 rounded-full font-bold ${r.source_type === 'MANDI_OPERATOR' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">
+              ${r.source_type === 'MANDI_OPERATOR' ? 'सरकारी नीलामी' : 'व्यापारी खरीद'}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-1.5 bg-gray-50 p-2 rounded-lg text-center">
+            <div>
+              <span class="text-[9px] text-gray-400 block">न्यूनतम</span>
+              <span class="text-xs font-bold text-gray-700">₹${r.price_min}</span>
+            </div>
+            <div class="border-x border-gray-200">
+              <span class="text-[9px] text-emerald-700 font-bold block">मॉडल (औसत)</span>
+              <span class="text-sm font-extrabold text-emerald-700">₹${r.price_modal || r.price_min}</span>
+            </div>
+            <div>
+              <span class="text-[9px] text-gray-400 block">अधिकतम</span>
+              <span class="text-xs font-bold text-gray-700">₹${r.price_max}</span>
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    // 2. Mandi Directory
+    function renderMandisList() {
+      const container = document.getElementById("mandiListContainer");
+      const search = document.getElementById("globalSearch")?.value.trim().toLowerCase() || "";
+
+      const filtered = mandis.filter(m => !search || m.name.toLowerCase().includes(search) || m.district.toLowerCase().includes(search));
+      document.getElementById("mandiCount").innerText = `${filtered.length} मंडियां उपलब्ध`;
+
+      container.innerHTML = filtered.map(m => {
+        const cropCount = rates.filter(r => r.mandi_id == m.id).length;
+        return `
+          <div onclick="openMandiDetail(${m.id})" class="bg-white p-3.5 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center cursor-pointer hover:bg-emerald-50">
+            <div>
+              <h3 class="text-sm font-bold text-gray-800">${m.name} मंडी</h3>
+              <p class="text-[11px] text-gray-500">जिला: ${m.district} (${m.state})</p>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">${cropCount} फसलें लाइव</span>
+              <span class="text-emerald-700 text-xs font-bold block mt-1">खोलें ➔</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    // 3. Mandi Detail Screen
+    function openMandiDetail(mId) {
+      detailMandiId = mId;
+      const m = mandis.find(x => x.id == mId) || { name: "मंडी", district: "मालवा", state: "मध्य प्रदेश" };
+      document.getElementById("mandiDetailTitle").innerText = `${m.name} मंडी`;
+      document.getElementById("mandiDetailMeta").innerText = `जिला: ${m.district} | राज्य: ${m.state}`;
+
+      renderMandiDetailCrops();
+      switchView("view-mandi-detail", true, `${m.name} मंडी`, "दैनिक मंडी बुलेटिन");
+    }
+
+    function setDetailSourceFilter(src) {
+      detailSourceFilter = src;
+      ['all', 'govt', 'trader'].forEach(t => {
+        const b = document.getElementById(`tab-src-${t}`);
+        if ((t === 'all' && src === 'ALL') || (t === 'govt' && src === 'MANDI_OPERATOR') || (t === 'trader' && src === 'TRADER')) {
+          b.className = "flex-1 py-1.5 rounded-md bg-white text-emerald-800 shadow-sm text-center font-bold";
+        } else {
+          b.className = "flex-1 py-1.5 rounded-md text-gray-600 text-center font-medium";
+        }
+      });
+      renderMandiDetailCrops();
+    }
+
+    function renderMandiDetailCrops() {
+      const container = document.getElementById("mandiCropsContainer");
+      let list = rates.filter(r => r.mandi_id == detailMandiId);
+      if (detailSourceFilter !== 'ALL') {
+        list = list.filter(r => r.source_type === detailSourceFilter);
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="bg-white p-6 rounded-xl text-center text-xs text-gray-400">इस श्रेणी में कोई भाव उपलब्ध नहीं है।</div>`;
+        return;
+      }
+
+      container.innerHTML = list.map(r => `
+        <div class="bg-white p-3.5 rounded-xl border border-gray-100 shadow-sm">
+          <div class="flex justify-between items-start mb-1">
+            <h4 class="font-bold text-sm text-gray-900">${r.crop_name}</h4>
+            <span class="text-[9px] px-2 py-0.5 rounded-full font-bold ${r.source_type === 'MANDI_OPERATOR' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">
+              ${r.source_type === 'MANDI_OPERATOR' ? 'सरकारी नीलामी' : 'व्यापारी खरीद'}
+            </span>
+          </div>
+          ${r.firm_name ? `<p class="text-[11px] text-blue-800 font-semibold mb-1">🏪 ${r.firm_name} (${r.quality_grade})</p>` : ''}
+          <div class="grid grid-cols-3 gap-2 text-xs bg-emerald-50/60 p-2 rounded-lg mt-1 text-center">
+            <div><span class="text-[9px] text-gray-400 block">न्यूनतम</span><strong>₹${r.price_min}</strong></div>
+            <div class="border-x border-emerald-200"><span class="text-[9px] text-emerald-700 font-bold block">मॉडल</span><strong class="text-emerald-800 text-sm">₹${r.price_modal}</strong></div>
+            <div><span class="text-[9px] text-gray-400 block">अधिकतम</span><strong>₹${r.price_max}</strong></div>
+          </div>
+          <p class="text-[10px] text-gray-400 mt-1">कुल आवक: ${r.arrival_quantity || '0'} बोरी</p>
+        </div>
+      `).join("");
+    }
+
+    // 4. Crop Detail Screen
+    function openCropDetail(cropName) {
+      detailCropName = cropName;
+      document.getElementById("cropDetailTitle").innerText = `${cropName} के सभी मंडियों के भाव`;
+      const container = document.getElementById("cropMandisContainer");
+      const list = rates.filter(r => r.crop_name.toLowerCase() === cropName.toLowerCase());
+
+      if (list.length === 0) {
+        container.innerHTML = `<div class="bg-white p-6 rounded-xl text-center text-xs text-gray-400">इस फसल का कोई भाव उपलब्ध नहीं है।</div>`;
+      } else {
+        container.innerHTML = list.map(r => `
+          <div class="bg-white p-3.5 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center">
+            <div>
+              <h4 class="font-bold text-sm text-gray-900">📍 ${r.mandi_name} मंडी</h4>
+              <p class="text-[11px] text-gray-400">रेंज: ₹${r.price_min} - ₹${r.price_max} | आवक: ${r.arrival_quantity} बोरी</p>
+              ${r.firm_name ? `<span class="text-[10px] text-blue-700 font-semibold">🏪 ${r.firm_name}</span>` : ''}
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] text-emerald-800 font-semibold block">मॉडल भाव</span>
+              <span class="text-base font-extrabold text-emerald-700">₹${r.price_modal}</span>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      switchView("view-crop-detail", true, cropName, "अखिल भारतीय मंडी भाव");
+    }
+
+    // 5. Comparison Screen
+    function renderComparisonResult() {
+      const cropId = document.getElementById("compareCrop")?.value;
+      const m1 = document.getElementById("compareM1")?.value;
+      const m2 = document.getElementById("compareM2")?.value;
+      const container = document.getElementById("compareResult");
+
+      const r1 = rates.find(r => r.commodity_id == cropId && r.mandi_id == m1);
+      const r2 = rates.find(r => r.commodity_id == cropId && r.mandi_id == m2);
+
+      const m1Name = mandis.find(x => x.id == m1)?.name || "मंडी 1";
+      const m2Name = mandis.find(x => x.id == m2)?.name || "मंडी 2";
+
+      container.innerHTML = `
+        <div class="grid grid-cols-2 gap-2 mt-2">
+          <div class="bg-white p-3 rounded-xl border text-center shadow-sm">
+            <h4 class="font-bold text-xs text-gray-800 mb-1">${m1Name}</h4>
+            ${r1 ? `
+              <p class="text-lg font-extrabold text-emerald-700">₹${r1.price_modal}</p>
+              <p class="text-[10px] text-gray-500 mt-1">रेंज: ₹${r1.price_min} - ₹${r1.price_max}</p>
+              <p class="text-[10px] text-gray-400 mt-0.5">आवक: ${r1.arrival_quantity} बोरी</p>
+              <span class="inline-block mt-2 text-[9px] px-2 py-0.5 rounded font-bold ${r1.source_type === 'MANDI_OPERATOR' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">${r1.source_type === 'MANDI_OPERATOR' ? 'नीलामी' : 'व्यापारी खरीद'}</span>
+            ` : `<p class="text-xs text-gray-400 py-6">भाव उपलब्ध नहीं</p>`}
+          </div>
+
+          <div class="bg-white p-3 rounded-xl border text-center shadow-sm">
+            <h4 class="font-bold text-xs text-gray-800 mb-1">${m2Name}</h4>
+            ${r2 ? `
+              <p class="text-lg font-extrabold text-emerald-700">₹${r2.price_modal}</p>
+              <p class="text-[10px] text-gray-500 mt-1">रेंज: ₹${r2.price_min} - ₹${r2.price_max}</p>
+              <p class="text-[10px] text-gray-400 mt-0.5">आवक: ${r2.arrival_quantity} बोरी</p>
+              <span class="inline-block mt-2 text-[9px] px-2 py-0.5 rounded font-bold ${r2.source_type === 'MANDI_OPERATOR' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}">${r2.source_type === 'MANDI_OPERATOR' ? 'नीलामी' : 'व्यापारी खरीद'}</span>
+            ` : `<p class="text-xs text-gray-400 py-6">भाव उपलब्ध नहीं</p>`}
+          </div>
+        </div>
+      `;
+    }
+
+    // 6. Trend & Chart Screen
+    function setTrendDays(days) {
+      trendDays = days;
+      document.querySelectorAll(".trend-tbtn").forEach(b => {
+        if (b.id === `btn-t${days}`) {
+          b.className = "trend-tbtn bg-emerald-700 text-white px-3 py-1 rounded font-bold";
+        } else {
+          b.className = "trend-tbtn bg-gray-100 text-gray-700 px-3 py-1 rounded font-medium";
+        }
+      });
+      updateTrendChart();
+    }
+
+    async function updateTrendChart() {
+      const mandiId = document.getElementById("trendMandi")?.value;
+      const cropId = document.getElementById("trendCrop")?.value;
+      if (!mandiId || !cropId) return;
+
+      const rows = await sqlQuery(`
+        SELECT price_date, price_min, price_modal, price_max, arrival_quantity 
+        FROM price_records 
+        WHERE mandi_id = ${mandiId} AND commodity_id = ${cropId}
+        ORDER BY price_date DESC LIMIT ${trendDays};
+      `);
+
+      let dataPoints = (rows && rows.length > 0) ? rows.reverse() : [
+        { price_date: "12 सित", price_min: 4400, price_modal: 4500, price_max: 4650, arrival_quantity: 200 },
+        { price_date: "13 सित", price_min: 4450, price_modal: 4550, price_max: 4700, arrival_quantity: 250 },
+        { price_date: "14 सित", price_min: 4500, price_modal: 4620, price_max: 4750, arrival_quantity: 310 },
+        { price_date: "15 सित", price_min: 4550, price_modal: 4680, price_max: 4800, arrival_quantity: 400 },
+        { price_date: "16 सित", price_min: 4500, price_modal: 4650, price_max: 4820, arrival_quantity: 380 },
+        { price_date: "17 सित", price_min: 4600, price_modal: 4720, price_max: 4890, arrival_quantity: 450 }
+      ];
+
+      const labels = dataPoints.map(d => String(d.price_date).slice(-5));
+      const values = dataPoints.map(d => d.price_modal || d.price_min);
+
+      const ctx = document.getElementById("trendChartCanvas")?.getContext("2d");
+      if (chartInstance) chartInstance.destroy();
+
+      if (window.Chart && ctx) {
+        chartInstance = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: labels,
+            datasets: [{
+              label: "मॉडल भाव (₹)",
+              data: values,
+              borderColor: "#047857",
+              backgroundColor: "rgba(4, 120, 87, 0.1)",
+              borderWidth: 2.5,
+              fill: true,
+              tension: 0.35,
+              pointBackgroundColor: "#047857"
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { display: false } },
+              y: { grid: { color: "#f3f4f6" } }
+            }
+          }
+        });
+      }
+
+      // History table
+      const tbody = document.getElementById("trendTableBody");
+      tbody.innerHTML = [...dataPoints].reverse().map(d => `
+        <tr class="hover:bg-gray-50">
+          <td class="p-2 font-medium">${d.price_date}</td>
+          <td class="p-2 text-gray-600">₹${d.price_min}</td>
+          <td class="p-2 font-bold text-emerald-700">₹${d.price_modal}</td>
+          <td class="p-2 text-gray-600">₹${d.price_max}</td>
+          <td class="p-2 text-gray-400">${d.arrival_quantity || '0'}</td>
+        </tr>
+      `).join("");
+    }
+
+    // 7. Data Entry Submissions
+    function switchSubPanel(type) {
+      document.querySelectorAll(".subpanel").forEach(el => el.classList.add("hidden"));
+      document.getElementById(`subpanel-${type}`)?.classList.remove("hidden");
+
+      ['operator', 'trader', 'reporter', 'master'].forEach(t => {
+        const b = document.getElementById(`sub-btn-${t}`);
+        if (t === type) {
+          b.className = "flex-1 py-1.5 rounded-lg bg-white text-emerald-800 shadow-sm text-center font-bold";
+        } else {
+          b.className = "flex-1 py-1.5 rounded-lg text-center font-medium text-gray-600";
+        }
+      });
+    }
+
+    async function submitOperatorForm(e) {
+      e.preventDefault();
+      const mId = document.getElementById("opMandi").value;
+      const cId = document.getElementById("opCrop").value;
+      const pMin = document.getElementById("opMin").value;
+      const pModal = document.getElementById("opModal").value;
+      const pMax = document.getElementById("opMax").value;
+      const arr = document.getElementById("opArrival").value || 0;
+      const dateVal = document.getElementById("globalDate").value;
+
+      await sqlQuery(`
+        INSERT INTO price_records (mandi_id, commodity_id, source_type, price_min, price_max, price_modal, arrival_quantity, price_date, status)
+        VALUES (${mId}, ${cId}, 'MANDI_OPERATOR', ${pMin}, ${pMax}, ${pModal}, ${arr}, '${dateVal}', 'approved');
+      `);
+
+      alert("✅ सरकारी नीलामी भाव दर्ज हो गया!");
+      switchView("view-home");
+      loadData();
+    }
+
+    async function submitTraderForm(e) {
+      e.preventDefault();
+      const firm = document.getElementById("traderFirm").value;
+      const mId = document.getElementById("traderMandi").value;
+      const cId = document.getElementById("traderCrop").value;
+      const q = document.getElementById("traderQuality").value;
+      const pMin = document.getElementById("traderMin").value;
+      const pMax = document.getElementById("traderMax").value;
+      const pModal = (parseFloat(pMin) + parseFloat(pMax)) / 2;
+      const dateVal = document.getElementById("globalDate").value;
+
+      await sqlQuery(`
+        INSERT INTO price_records (mandi_id, commodity_id, source_type, firm_name, quality_grade, price_min, price_max, price_modal, price_date, status)
+        VALUES (${mId}, ${cId}, 'TRADER', '${firm}', '${q}', ${pMin}, ${pMax}, ${pModal}, '${dateVal}', 'approved');
+      `);
+
+      alert("✅ व्यापारी खरीद भाव दर्ज हो गया!");
+      switchView("view-home");
+      loadData();
+    }
+
+    async function submitReporterForm(e) {
+      e.preventDefault();
+      const rep = document.getElementById("repName").value;
+      const mId = document.getElementById("repMandi").value;
+      const sent = document.getElementById("repSentiment").value;
+      const title = document.getElementById("repTitle").value;
+      const content = document.getElementById("repText").value;
+
+      await sqlQuery(`
+        INSERT INTO market_news (mandi_id, title, report_text, reporter_name, sentiment)
+        VALUES (${mId}, '${title}', '${content}', '${rep}', '${sent}');
+      `);
+
+      alert("✅ पत्रकार समाचार प्रकाशित हो गया!");
+      switchView("view-home");
+    }
+
+    async function submitNewMandi(e) {
+      e.preventDefault();
+      const name = document.getElementById("newMandiName").value.trim();
+      const dist = document.getElementById("newMandiDistrict").value.trim();
+      await sqlQuery(`INSERT INTO mandis (name, district) VALUES ('${name}', '${dist}');`);
+      alert(`✅ मंडी '${name}' जुड़ गई!`);
+      initApp();
+    }
+
+    async function submitNewCrop(e) {
+      e.preventDefault();
+      const name = document.getElementById("newCropName").value.trim();
+      const cat = document.getElementById("newCropCat").value;
+      await sqlQuery(`INSERT INTO commodities (name_hi, category) VALUES ('${name}', '${cat}');`);
+      alert(`✅ फसल '${name}' जुड़ गई!`);
+      initApp();
+    }
+  </script>
 </body>
 </html>
